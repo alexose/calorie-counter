@@ -31,6 +31,21 @@
                     : this.selected.slice().concat([item]);
                 this.$emit("selected", item);
             },
+            selectToday() {
+                const today = new Date().toLocaleDateString();
+                this.selected = this.items.filter(item => {
+                    const itemDate = new Date(item.consumed_at).toLocaleDateString();
+                    return itemDate === today;
+                });
+            },
+            selectThisWeek() {
+                const today = new Date();
+                const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+                this.selected = this.items.filter(item => {
+                    const itemDate = new Date(item.consumed_at);
+                    return itemDate >= weekAgo && itemDate <= today;
+                });
+            },
             humanizeDate(date) {
                 return new Date(date).toLocaleString();
             },
@@ -97,6 +112,13 @@
                 </tr>
             </tbody>
         </table>
+        <div class="select-buttons">
+            <button type="button" class="btn btn-primary" @click="selected = items.slice()">Select All</button>
+            <button type="button" class="btn btn-primary" @click="selectToday">Select Today</button>
+            <button type="button" class="btn btn-primary" @click="selectThisWeek">Select This Week</button>
+            <div class="divider"></div>
+            <button type="button" class="btn btn-primary" @click="selected = []">Clear Selection</button>
+        </div>
         <table class="table table-striped" :class="{dragging: isDragging}">
             <thead>
                 <tr>
@@ -139,6 +161,27 @@
 
     h3 {
         font-size: 1.2rem;
+    }
+
+    div.select-buttons {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    div.select-buttons button {
+        margin-right: 10px;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+    }
+
+    div.select-buttons .divider {
+        display: inline-block;
+        width: 1px;
+        height: 30px;
+        background-color: #ccc;
+        margin: 0 20px 0 10px;
     }
 
     table {
