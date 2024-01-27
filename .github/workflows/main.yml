@@ -19,7 +19,7 @@ jobs:
 
             - name: SSH and Update/Clone Repo, Run Build Script
               run: |
-                  ssh -o "StrictHostKeyChecking=no" user@calories.alexose.com "
+                  ssh -o "StrictHostKeyChecking=no" alexose@alexose.com "
                   if [ -d ~/calorie-tracker ]; then
                     cd ~/calorie-tracker
                     git pull origin main
