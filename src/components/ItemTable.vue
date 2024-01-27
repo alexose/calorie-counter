@@ -39,6 +39,14 @@
                     return itemDate === today;
                 });
             },
+            selectYesterday() {
+                const today = new Date();
+                const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                this.selected = this.items.filter(item => {
+                    const itemDate = new Date(item.consumed_at);
+                    return itemDate >= yesterday && itemDate <= today;
+                });
+            },
             selectThisWeek() {
                 const today = new Date();
                 const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -116,6 +124,7 @@
         <div class="select-buttons">
             <button type="button" class="btn btn-primary" @click="selected = items.slice()">Select All</button>
             <button type="button" class="btn btn-primary" @click="selectToday">Select Today</button>
+            <button type="button" class="btn btn-primary" @click="selectYesterday">Select Yesterday</button>
             <button type="button" class="btn btn-primary" @click="selectThisWeek">Select This Week</button>
             <div class="divider"></div>
             <button type="button" class="btn btn-primary" @click="selected = []">Clear Selection</button>
