@@ -12,7 +12,17 @@
             async getItems() {
                 const response = await fetch("/items/last7days");
                 const obj = await response.json();
-                this.items = obj.data;
+
+                const items = obj.data.map(item => {
+                    const date = new Date(item.consumed_at);
+                    const isEvenDate = date.getDate() % 2 === 0;
+                    return {
+                        ...item,
+                        isEvenDate,
+                    };
+                });
+
+                this.items = items;
             },
             toggleItem(item) {
                 // If item is selected, remove it from the array.  Otherwise, add it to the array
@@ -105,7 +115,7 @@
                     @mousedown="startDrag(item)"
                     @mouseup="endDrag()"
                     @mouseenter="handleDrag(item)"
-                    :class="{selected: selected.includes(item)}"
+                    :class="{selected: selected.includes(item), isEvenDate: !!item.isEvenDate}"
                 >
                     <td>{{ item.name }}</td>
                     <td>{{ humanizeDate(item.consumed_at) }}</td>
@@ -155,6 +165,10 @@
 
     tr.selected {
         background-color: #f5f5f5;
+    }
+
+    tr.isEvenDate {
+        border-left: 5px solid #e6f2ff;
     }
 
     table.dragging {
