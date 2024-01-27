@@ -7,7 +7,7 @@
         },
         methods: {
             async getItems() {
-                const response = await fetch("/items");
+                const response = await fetch("/items/last7days");
                 const obj = await response.json();
                 this.items = obj.data;
                 console.log(this.items);
@@ -58,9 +58,33 @@
         font-size: 1.2rem;
     }
 
-    .greetings h1,
-    .greetings h3 {
-        text-align: center;
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    th,
+    td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        color: #333;
+    }
+
+    tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    table caption {
+        padding: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: left;
     }
 
     @media (min-width: 1024px) {

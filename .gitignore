@@ -7,6 +7,9 @@ node_modules/
 # Environment variables
 .env
 
+# Built output
+dist/
+
 # Debug log from npm
 npm-debug.log*
 

@@ -3,11 +3,9 @@
 </script>
 
 <template>
-    <header>
-        <div class="wrapper">
-            <ItemTable />
-        </div>
-    </header>
+    <div class="wrapper">
+        <ItemTable />
+    </div>
 </template>
 
 <style scoped>

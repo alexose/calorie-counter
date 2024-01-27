@@ -82,7 +82,7 @@ app.post("/items", (req, res) => {
 
 // READ
 app.get("/items", (req, res) => {
-    db.all("SELECT * FROM items", [], (err, rows) => {
+    db.all("SELECT * FROM items ORDER BY consumed_at DESC", [], (err, rows) => {
         if (err) {
             res.status(500).json({error: err.message});
             return;
@@ -95,7 +95,7 @@ app.get("/items/today", (req, res) => {
     const today = new Date();
     const dateString = today.toISOString().split("T")[0]; // Format as 'YYYY-MM-DD'
 
-    const sql = "SELECT * FROM items WHERE DATE(consumed_at) = ?";
+    const sql = "SELECT * FROM items WHERE DATE(consumed_at) >= ? ORDER BY consumed_at DESC";
 
     db.all(sql, [dateString], (err, rows) => {
         if (err) {
@@ -115,12 +115,11 @@ app.get("/items/last7days", (req, res) => {
     sevenDaysAgo.setDate(today.getDate() - 7);
 
     // Format dates to 'YYYY-MM-DD'
-    const todayString = today.toISOString().split("T")[0];
     const sevenDaysAgoString = sevenDaysAgo.toISOString().split("T")[0];
 
-    const sql = "SELECT * FROM items WHERE DATE(consumed_at) BETWEEN ? AND ?";
+    const sql = "SELECT * FROM items WHERE DATE(consumed_at) >= ? ORDER BY consumed_at DESC";
 
-    db.all(sql, [sevenDaysAgoString, todayString], (err, rows) => {
+    db.all(sql, [sevenDaysAgoString], (err, rows) => {
         if (err) {
             res.status(500).json({error: err.message});
             return;
