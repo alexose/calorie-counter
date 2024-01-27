@@ -44,7 +44,7 @@ app.post("/items", (req, res) => {
     db.serialize(() => {
         db.run("BEGIN TRANSACTION");
 
-        const sql = "INSERT INTO items (name, calories, fat, carbs, protein) VALUES (?, ?, ?, ?, ?)";
+        const sql = "INSERT INTO items (name, calories, fat, carbs, protein, consumed_at) VALUES (?, ?, ?, ?, ?, ?)";
         let errorOccurred = false;
 
         // Using a traditional for-loop to allow breaking out
