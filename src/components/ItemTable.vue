@@ -3,6 +3,9 @@
         data() {
             return {
                 items: [],
+                selected: [],
+                isDragging: false,
+                lastClickedItem: null,
             };
         },
         methods: {
@@ -10,7 +13,49 @@
                 const response = await fetch("/items/last7days");
                 const obj = await response.json();
                 this.items = obj.data;
-                console.log(this.items);
+            },
+            toggleItem(item) {
+                // If item is selected, remove it from the array.  Otherwise, add it to the array
+                this.selected = this.selected.includes(item)
+                    ? this.selected.filter(i => i !== item)
+                    : this.selected.slice().concat([item]);
+                this.$emit("selected", item);
+            },
+            humanizeDate(date) {
+                return new Date(date).toLocaleString();
+            },
+            startDrag(item) {
+                this.isDragging = true;
+                this.lastClickedItem = item;
+                this.toggleItem(item);
+            },
+            endDrag() {
+                this.isDragging = false;
+                this.lastClickedItem = null;
+            },
+            handleDrag(item) {
+                if (this.isDragging && this.lastClickedItem !== item) {
+                    this.toggleItem(item);
+                }
+            },
+        },
+        computed: {
+            totals() {
+                return this.selected.reduce(
+                    (acc, item) => {
+                        acc.calories += item.calories;
+                        acc.carbs += item.carbs;
+                        acc.fat += item.fat;
+                        acc.protein += item.protein;
+                        return acc;
+                    },
+                    {
+                        calories: 0,
+                        carbs: 0,
+                        fat: 0,
+                        protein: 0,
+                    }
+                );
             },
         },
         mounted() {
@@ -20,8 +65,29 @@
 </script>
 
 <template>
-    <div class="greetings">
+    <div>
         <table class="table table-striped">
+            <caption>
+                Selected Items
+            </caption>
+            <thead>
+                <tr>
+                    <th scope="col">Calories</th>
+                    <th scope="col">Carbs</th>
+                    <th scope="col">Fat</th>
+                    <th scope="col">Protein</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ totals?.calories }}</td>
+                    <td>{{ totals?.carbs }}</td>
+                    <td>{{ totals?.fat }}</td>
+                    <td>{{ totals?.protein }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-striped" :class="{dragging: isDragging}">
             <thead>
                 <tr>
                     <th scope="col">Name</th>
@@ -33,9 +99,16 @@
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="item in items" :key="item.id">
+                <tr
+                    v-for="item in items"
+                    :key="item.id"
+                    @mousedown="startDrag(item)"
+                    @mouseup="endDrag()"
+                    @mouseenter="handleDrag(item)"
+                    :class="{selected: selected.includes(item)}"
+                >
                     <td>{{ item.name }}</td>
-                    <td>{{ item.consumed_at }}</td>
+                    <td>{{ humanizeDate(item.consumed_at) }}</td>
                     <td>{{ item.calories }}</td>
                     <td>{{ item.carbs }}</td>
                     <td>{{ item.fat }}</td>
@@ -78,6 +151,14 @@
 
     tr:hover {
         background-color: #f5f5f5;
+    }
+
+    tr.selected {
+        background-color: #f5f5f5;
+    }
+
+    table.dragging {
+        user-select: none;
     }
 
     table caption {
