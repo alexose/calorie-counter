@@ -40,11 +40,12 @@
                 });
             },
             selectYesterday() {
-                const today = new Date();
                 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+                const dayBeforeYesterday = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000);
+
                 this.selected = this.items.filter(item => {
                     const itemDate = new Date(item.consumed_at);
-                    return itemDate >= yesterday && itemDate <= today;
+                    return itemDate >= dayBeforeYesterday && itemDate <= yesterday;
                 });
             },
             selectThisWeek() {
