@@ -27,5 +27,6 @@ jobs:
                     git clone git@github.com:alexose/calorie-tracker.git ~/calorie-tracker 
                     cd ~/calorie-tracker
                   fi
+                  npm install
                   npm run build
                   "
