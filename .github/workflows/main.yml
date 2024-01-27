@@ -28,6 +28,8 @@ jobs:
                   ssh -o "StrictHostKeyChecking=no" alexose@alexose.com "
                   if [ -d ~/calorie-tracker ]; then
                     cd ~/calorie-tracker
+                    git checkout main
+                    git reset --hard origin/main
                     git pull origin main
                   else
                     git clone git@github.com:alexose/calorie-tracker.git ~/calorie-tracker 
