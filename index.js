@@ -46,6 +46,7 @@ app.post("/items", (req, res) => {
 
         const sql = "INSERT INTO items (name, calories, fat, carbs, protein, consumed_at) VALUES (?, ?, ?, ?, ?, ?)";
         let errorOccurred = false;
+        let insertedCount = 0; // Track the number of successful inserts
 
         // Using a traditional for-loop to allow breaking out
         for (let i = 0; i < itemsArray.length; i++) {
@@ -56,26 +57,24 @@ app.post("/items", (req, res) => {
                 if (err) {
                     console.error(err.message);
                     errorOccurred = true;
-                    // Exiting the loop
-                    return;
+                } else {
+                    insertedCount++;
+                    console.log(
+                        `${item.name}: ${item.calories} calories, ${item.fat}g of fat, ${item.carbs}g of carbs, ${item.protein}g of protein.  Consumed at ${item.consumed_at}`
+                    );
                 }
-                console.log(
-                    `${item.name}: ${item.calories} calories, ${item.fat}g of fat, ${item.carbs}g of carbs, ${item.protein}g of protein.  Consumed at ${item.consumed_at}`
-                );
+
+                // Check if all inserts have completed
+                if (insertedCount === itemsArray.length) {
+                    if (errorOccurred) {
+                        db.run("ROLLBACK");
+                        res.status(500).json({error: "An error occurred while inserting items"});
+                    } else {
+                        db.run("COMMIT");
+                        res.status(201).json({message: "All items inserted successfully"});
+                    }
+                }
             });
-
-            // Break out of the loop if an error occurred
-            if (errorOccurred) {
-                break;
-            }
-        }
-
-        if (errorOccurred) {
-            db.run("ROLLBACK");
-            res.status(500).json({error: "An error occurred while inserting items"});
-        } else {
-            db.run("COMMIT");
-            res.status(201).json({message: "All items inserted successfully"});
         }
     });
 });
