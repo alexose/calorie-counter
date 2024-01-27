@@ -42,11 +42,11 @@
             selectYesterday() {
                 const today = new Date();
                 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-                const dayBeforeYesterday = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000);
 
                 this.selected = this.items.filter(item => {
-                    const itemDate = new Date(item.consumed_at);
-                    return itemDate >= dayBeforeYesterday && itemDate <= yesterday;
+                    const itemDateUtc = new Date(item.consumed_at);
+                    const itemDateLocal = new Date(itemDateUtc.getTime() + itemDateUtc.getTimezoneOffset() * 60 * 1000);
+                    return itemDateLocal >= yesterday && itemDateLocal < today;
                 });
             },
             selectThisWeek() {
