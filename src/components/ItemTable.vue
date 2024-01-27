@@ -23,6 +23,7 @@
                 });
 
                 this.items = items;
+                this.selectToday();
             },
             toggleItem(item) {
                 // If item is selected, remove it from the array.  Otherwise, add it to the array
