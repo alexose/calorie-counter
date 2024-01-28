@@ -92,16 +92,23 @@ app.get("/items", (req, res) => {
 
 app.get("/items/today", (req, res) => {
     const today = new Date();
-    const dateString = today.toISOString().split("T")[0]; // Format as 'YYYY-MM-DD'
+    const date = today.toISOString().split("T")[0]; // Format as "YYYY-MM-DD"
 
-    const sql = "SELECT * FROM items WHERE DATE(consumed_at) >= ? ORDER BY consumed_at DESC";
+    // Assuming using a database library like 'mysql' or 'pg'
+    const query = `
+        SELECT * FROM items 
+        WHERE consumed_at >= '${date} 00:00:00' 
+        AND consumed_at <= '${date} 23:59:59'`;
 
-    db.all(sql, [dateString], (err, rows) => {
-        if (err) {
-            res.status(500).json({error: err.message});
-            return;
+    // Execute the query
+    db.query(query, (error, results) => {
+        if (error) {
+            // Handle error
+            res.status(500).send("Server error");
+        } else {
+            // Send the results
+            res.json(results);
         }
-        res.status(200).json({data: rows});
     });
 });
 
