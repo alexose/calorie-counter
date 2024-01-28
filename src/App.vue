@@ -10,7 +10,7 @@
                 startWidth: 0,
                 startX: 0,
                 collapsed: true,
-                websocket: null,
+                webSocket: null,
             };
         },
         components: {
@@ -22,6 +22,9 @@
                 // Calculate 66% of the width of the viewport
                 this.leftWidth = this.leftWidth || window.innerWidth / 1.5;
                 this.collapsed = !this.collapsed;
+            },
+            submitQuery() {
+                this.webSocket.send(JSON.stringify({message: "Hello, server."}));
             },
             startResize(event) {
                 this.isResizing = true;
@@ -46,7 +49,7 @@
                 document.removeEventListener("mousemove", this.resizeHandler);
                 document.removeEventListener("mouseup", this.stopResize);
             },
-            getWebsocketUrl() {
+            getWebSocketUrl() {
                 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
                 const host = window.location.host;
                 const path = "/ws";
@@ -54,13 +57,12 @@
             },
         },
         mounted() {
-            this.websocket = new WebSocket(this.getWebsocketUrl());
-            const ws = this.websocket;
+            this.webSocket = new WebSocket(this.getWebSocketUrl());
+            const ws = this.webSocket;
 
             ws.onopen = () => {
                 this.connectedStatus = "Connected";
-                console.log("Websocket connected");
-                ws.send(JSON.stringify({message: "Hello, server."}));
+                console.log("WebSocket connected");
                 return false;
             };
 
@@ -70,7 +72,7 @@
             };
 
             ws.onclose = () => {
-                console.log("Websocket closed");
+                console.log("WebSocket closed");
             };
 
             window.addEventListener("resize", () => {
@@ -89,7 +91,7 @@
         </div>
         <div class="divider" @mousedown="startResize" v-if="!collapsed"></div>
         <div class="right-pane chat-interface" v-if="!collapsed">
-            <ChatInterface />
+            <ChatInterface :webSocket="webSocket" />
         </div>
     </div>
     <div class="chat-toggle" @click="toggleChat">Chat!</div>

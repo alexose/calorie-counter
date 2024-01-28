@@ -4,6 +4,9 @@ node_modules/
 # SQLite Database
 *.db
 
+# Secrets
+secrets.js
+
 # Environment variables
 .env
 

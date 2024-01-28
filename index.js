@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
 const http = require("http");
+const openai = require("openai");
 
 const app = express();
 const ws = require("ws");
@@ -9,7 +10,11 @@ const ws = require("ws");
 const port = 3003;
 const db = new sqlite3.Database("./data.db");
 
-const SECRET_KEY = "678rCkqRM#hmcUCpDzLrH^w&";
+const secrets = require("./secrets.js");
+const SECRET_KEY = secrets.SECRET_KEY;
+const OPENAI_KEY = secrets.OPENAI_KEY;
+
+const openAiClient = new openai({apiKey: OPENAI_KEY});
 
 const authenticate = (req, res, next) => {
     const apiKey = req.headers["x-api-key"];
@@ -182,6 +187,30 @@ app.delete("/items/:id", (req, res) => {
     });
 });
 
+// Submit to OpenAI API and stream results back
+async function sendAndStream(ws, message) {
+    const requestData = {
+        engine: "davinci",
+        prompt: message,
+        maxTokens: 100,
+    };
+
+    const completionStream = openaiInstance.Completion.createStream(requestData);
+
+    // Handle streamed results
+    completionStream
+        .on("data", data => {
+            console.log(data.choices[0].text); // Process and log the received data
+            ws.send(data.choices[0].text); // Send the data back to the client
+        })
+        .on("end", () => {
+            console.log("Stream ended"); // End of streaming
+        })
+        .on("error", error => {
+            console.error("Error:", error.message); // Handle errors
+        });
+}
+
 // Start the server
 const server = http.createServer(app);
 
@@ -189,6 +218,7 @@ const wss = new ws.WebSocketServer({server: server});
 
 wss.on("connection", function (ws) {
     ws.on("message", function (message) {
+        sendAndStream(ws, message);
         console.log("received: %s", message);
     });
 
