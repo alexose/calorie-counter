@@ -80,7 +80,7 @@ components:
                 - calories_low
                 - fat_low
                 - carbs_low
-                _ protein_low
+                - protein_low
                 - calories
                 - fat
                 - carbs
