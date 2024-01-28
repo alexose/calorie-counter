@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-    title: Nutrition Item API
+    title: Alex's Calorie Tracker
     version: 1.0.0
-    description: An API for managing nutritional information of items
+    description: An API for counting calories and macros, powered by ChatGPT.
 servers:
     - url: https://calories.alexose.com
       description: Development server
