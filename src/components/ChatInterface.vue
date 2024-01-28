@@ -9,6 +9,7 @@
                 input: "",
                 connected: false,
                 messages: [],
+                messageIdx: 0,
             };
         },
         methods: {
@@ -23,14 +24,24 @@
             }
 
             this.webSocket.onmessage = event => {
-                console.log("Message received from server");
                 console.log(event.data);
-                this.messages = this.messages.concat(JSON.parse(event.data));
+                const arr = this.messages;
+                const idx = this.messageIdx;
+                if (!arr[idx]) arr[idx] = {id: idx, header: "", body: ""};
+                arr[idx].body += event.data;
             };
 
             this.webSocket.onclose = event => {
                 this.connected = false;
             };
+        },
+        watch: {
+            myArray: {
+                handler(newArray, oldArray) {
+                    console.log("myArray changed:", newArray);
+                },
+                deep: true,
+            },
         },
     };
 </script>
@@ -43,10 +54,10 @@
         <div v-for="message in messages" :key="message.id">
             <div class="message">
                 <div class="message-header">
-                    <p>{{ message.username }}</p>
+                    <p>{{ message.header }}</p>
                 </div>
                 <div class="message-body">
-                    <p>{{ message.message }}</p>
+                    <p>{{ message.body }}</p>
                 </div>
             </div>
         </div>

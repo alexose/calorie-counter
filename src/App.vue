@@ -66,11 +66,6 @@
                 return false;
             };
 
-            ws.onmessage = e => {
-                console.log(e.data);
-                return false;
-            };
-
             ws.onclose = () => {
                 console.log("WebSocket closed");
             };
