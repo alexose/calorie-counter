@@ -77,10 +77,18 @@ components:
             type: object
             required:
                 - name
+                - calories_low
+                - fat_low
+                - carbs_low
+                _ protein_low
                 - calories
                 - fat
                 - carbs
                 - protein
+                - calories_high
+                - fat_high
+                - carbs_high
+                - protein_high
             properties:
                 id:
                     type: integer
@@ -89,6 +97,22 @@ components:
                 name:
                     type: string
                     description: Name of the item
+                calories_low:
+                    type: number
+                    format: double
+                    description: Caloric content (low estimate)
+                fat_low:
+                    type: number
+                    format: double
+                    description: Fat content (low estimate)
+                carbs_low:
+                    type: number
+                    format: double
+                    description: Carbohydrate content (low estimate)
+                protein_low:
+                    type: number
+                    format: double
+                    description: Protein content (low estimate)
                 calories:
                     type: number
                     format: double
@@ -105,6 +129,22 @@ components:
                     type: number
                     format: double
                     description: Protein content
+                calories_high:
+                    type: number
+                    format: double
+                    description: Caloric content (high estimate)
+                fat_high:
+                    type: number
+                    format: double
+                    description: Fat content (high estimate)
+                carbs_high:
+                    type: number
+                    format: double
+                    description: Carbohydrate content (high estimate)
+                protein_high:
+                    type: number
+                    format: double
+                    description: Protein content (high estimate)
                 consumed_at:
                     type: string
                     format: date-time

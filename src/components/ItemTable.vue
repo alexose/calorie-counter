@@ -32,6 +32,11 @@
                     : this.selected.slice().concat([item]);
                 this.$emit("selected", item);
             },
+            estimates(item, field) {
+                const low = item[field + "_low"];
+                const high = item[field + "_high"];
+                return low !== undefined && high !== undefined ? `Between ${low} and ${high} ${field}` : "";
+            },
             selectToday() {
                 const today = new Date().toLocaleDateString();
                 this.selected = this.items.filter(item => {
@@ -79,17 +84,33 @@
             totals() {
                 return this.selected.reduce(
                     (acc, item) => {
+                        acc.calories_low += item.calories_low || item.calories;
+                        acc.carbs_low += item.carbs_low || item.carbs;
+                        acc.fat_low += item.fat_low || item.fat;
+                        acc.protein_low += item.protein_low || item.protein;
                         acc.calories += item.calories;
                         acc.carbs += item.carbs;
                         acc.fat += item.fat;
                         acc.protein += item.protein;
+                        acc.calories_high += item.calories_high || item.calories;
+                        acc.carbs_high += item.carbs_high || item.carbs;
+                        acc.fat_high += item.fat_high || item.fat;
+                        acc.protein_high += item.protein_high || item.protein;
                         return acc;
                     },
                     {
+                        calories_low: 0,
+                        carbs_low: 0,
+                        fat_low: 0,
+                        protein_low: 0,
                         calories: 0,
                         carbs: 0,
                         fat: 0,
                         protein: 0,
+                        calories_high: 0,
+                        carbs_high: 0,
+                        fat_high: 0,
+                        protein_high: 0,
                     }
                 );
             },
@@ -116,7 +137,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>{{ totals?.calories }}</td>
+                    <td :title="estimates(totals, 'calories')">{{ totals?.calories }}</td>
                     <td>{{ totals?.carbs }}</td>
                     <td>{{ totals?.fat }}</td>
                     <td>{{ totals?.protein }}</td>
@@ -153,10 +174,10 @@
                 >
                     <td>{{ item.name }}</td>
                     <td>{{ humanizeDate(item.consumed_at) }}</td>
-                    <td>{{ item.calories }}</td>
-                    <td>{{ item.carbs }}</td>
-                    <td>{{ item.fat }}</td>
-                    <td>{{ item.protein }}</td>
+                    <td :title="estimates(item, 'calories')">{{ item.calories }}</td>
+                    <td :title="estimates(item, 'carbs')">{{ item.carbs }}</td>
+                    <td :title="estimates(item, 'fat')">{{ item.fat }}</td>
+                    <td :title="estimates(item, 'protein')">{{ item.protein }}</td>
                 </tr>
             </tbody>
         </table>
