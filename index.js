@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
 
 const app = express();
+const expressWs = require("express-ws")(app);
+
 const port = 3003;
 const db = new sqlite3.Database("./data.db");
 
@@ -176,6 +178,14 @@ app.delete("/items/:id", (req, res) => {
             return;
         }
         res.status(200).json({message: `Row(s) deleted: ${this.changes}`});
+    });
+});
+
+// Websocket
+app.ws("/", function (ws, req) {
+    ws.send("Hello from the server!");
+    ws.on("message", function (msg) {
+        console.log(msg);
     });
 });
 

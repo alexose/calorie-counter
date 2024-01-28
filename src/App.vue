@@ -10,6 +10,7 @@
                 startWidth: 0,
                 startX: 0,
                 collapsed: true,
+                websocket: null,
             };
         },
         components: {
@@ -45,8 +46,39 @@
                 document.removeEventListener("mousemove", this.resizeHandler);
                 document.removeEventListener("mouseup", this.stopResize);
             },
+            getWebsocketUrl() {
+                const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+                const host = window.location.host;
+                const path = "/ws";
+                return `${protocol}://${host}${path}`;
+            },
         },
-        mounted() {},
+        mounted() {
+            this.websocket = new WebSocket(this.getWebsocketUrl());
+            const ws = this.websocket;
+
+            ws.onopen = () => {
+                this.connectedStatus = "Connected";
+                console.log("Websocket connected");
+                ws.send(JSON.stringify({message: "Hello, server."}));
+                return false;
+            };
+
+            ws.onmessage = e => {
+                console.log(e.data);
+                return false;
+            };
+
+            ws.onclose = () => {
+                console.log("Websocket closed");
+            };
+
+            window.addEventListener("resize", () => {
+                if (!this.collapsed) {
+                    this.leftWidth = window.innerWidth / 1.5;
+                }
+            });
+        },
     };
 </script>
 
