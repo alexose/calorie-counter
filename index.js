@@ -1,9 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
+const http = require("http");
 
 const app = express();
-const expressWs = require("express-ws")(app);
+const ws = require("ws");
 
 const port = 3003;
 const db = new sqlite3.Database("./data.db");
@@ -181,14 +182,17 @@ app.delete("/items/:id", (req, res) => {
     });
 });
 
-// Websocket
-app.ws("/", function (ws, req) {
-    ws.send("Hello from the server!");
-    ws.on("message", function (msg) {
-        console.log(msg);
+// Start the server
+const server = http.createServer(app);
+
+const wss = new ws.WebSocketServer({server: server});
+
+wss.on("connection", function (ws) {
+    ws.on("message", function (message) {
+        console.log("received: %s", message);
     });
+
+    ws.send("something");
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+server.listen(port, () => console.log(`Listening on port ${port}`));
