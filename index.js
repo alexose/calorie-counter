@@ -44,14 +44,30 @@ app.post("/items", (req, res) => {
     db.serialize(() => {
         db.run("BEGIN TRANSACTION");
 
-        const sql = "INSERT INTO items (name, calories, fat, carbs, protein, consumed_at) VALUES (?, ?, ?, ?, ?, ?)";
+        const sql =
+            "INSERT INTO items (name, calories_low, fat_low, carbs_low, protein_low, calories, fat, carbs, protein, calories_high, fat_high, carbs_high, protein_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?)";
         let errorOccurred = false;
         let insertedCount = 0; // Track the number of successful inserts
 
         // Using a traditional for-loop to allow breaking out
         for (let i = 0; i < itemsArray.length; i++) {
             const item = itemsArray[i];
-            const params = [item.name, item.calories, item.fat, item.carbs, item.protein, item.consumed_at];
+            const params = [
+                item.name,
+                item.calories_low,
+                item.fat_low,
+                item.carbs_low,
+                item.protein_low,
+                item.calories,
+                item.fat,
+                item.carbs,
+                item.protein,
+                item.calories_high,
+                item.fat_high,
+                item.carbs_high,
+                item.protein_high,
+                item.consumed_at,
+            ];
 
             db.run(sql, params, function (err) {
                 if (err) {
