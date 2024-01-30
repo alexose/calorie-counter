@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const sqlite3 = require("sqlite3").verbose();
 const http = require("http");
-const openai = require("openai");
+const fs = require("fs");
 
 const app = express();
 const ws = require("ws");
@@ -14,7 +14,9 @@ const secrets = require("./secrets.js");
 const SECRET_KEY = secrets.SECRET_KEY;
 const OPENAI_KEY = secrets.OPENAI_KEY;
 
+const openai = require("openai");
 const openAiInstance = new openai({apiKey: OPENAI_KEY});
+const prompt = fs.readFileSync("./prompt.txt", "utf8");
 
 const authenticate = (req, res, next) => {
     const apiKey = req.headers["x-api-key"];
@@ -189,10 +191,9 @@ app.delete("/items/:id", (req, res) => {
 
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
-    console.log(message);
     const requestData = {
         model: "gpt-4",
-        messages: [{role: "user", content: message}],
+        messages: [{role: "user", content: prompt + "\n" + message}],
         stream: true,
     };
 
