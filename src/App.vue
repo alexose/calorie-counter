@@ -55,7 +55,7 @@
             },
             connectWebSocket() {
                 this.webSocketStatus = "connecting";
-                this.webSocket = new WebSocket(this.getWebSocketUrl());
+                console.log("connecting");
                 const ws = this.webSocket;
 
                 ws.onopen = () => {
@@ -75,6 +75,7 @@
                 };
 
                 this.reconnectTimeout = setTimeout(() => {
+                    console.log("EHHHHU");
                     this.connectWebSocket();
                 }, 5000);
             },
@@ -97,6 +98,7 @@
             },
         },
         mounted() {
+            this.webSocket = new WebSocket(this.getWebSocketUrl());
             this.connectWebSocket();
             window.addEventListener("resize", () => {
                 if (!this.collapsed) {

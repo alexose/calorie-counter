@@ -16,7 +16,8 @@ const OPENAI_KEY = secrets.OPENAI_KEY;
 
 const openai = require("openai");
 const openAiInstance = new openai({apiKey: OPENAI_KEY});
-const prompt = fs.readFileSync("./prompt.txt", "utf8");
+const dataPrompt = fs.readFileSync("./dataPrompt.txt", "utf8");
+const englishPrompt = fs.readFileSync("./englishPrompt.txt", "utf8");
 
 const authenticate = (req, res, next) => {
     const apiKey = req.headers["x-api-key"];
@@ -63,20 +64,26 @@ app.post("/items", (req, res) => {
         for (let i = 0; i < itemsArray.length; i++) {
             const item = itemsArray[i];
             const params = [
-                item.name,
-                item.calories_low,
-                item.fat_low,
-                item.carbs_low,
-                item.protein_low,
-                item.calories,
-                item.fat,
-                item.carbs,
-                item.protein,
-                item.calories_high,
-                item.fat_high,
-                item.carbs_high,
-                item.protein_high,
-                item.consumed_at,
+                name,
+                calories_low,
+                calories,
+                calories_high,
+                protein_low,
+                protein,
+                protein_high,
+                fat_low,
+                fat,
+                fat_high,
+                carbs_low,
+                carbs,
+                carbs_high,
+                fiber_low,
+                fiber,
+                fiber_high,
+                alcohol_low,
+                alcohol,
+                alcohol_high,
+                consumed_at,
             ];
 
             db.run(sql, params, function (err) {
@@ -203,33 +210,37 @@ app.delete("/items/:id", (req, res) => {
 
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
-    const currentPrompt = prompt.replace("{{date}}", new Date().toLocaleString());
-    const requestData = {
+    // We're going to make two requests:  One for raw data, and one for plain english.
+    // Begin by gathering the CSV response. This one doesn't need to stream.
+    const currentDataPrompt = dataPrompt.replace("{{date}}", new Date().toLocaleString());
+    const dataRequest = {
         model: "gpt-4",
-        messages: [{role: "user", content: currentPrompt + "\n" + message}],
+        messages: [{role: "user", content: currentDataPrompt + "\n" + message}],
+    };
+
+    // Fire off first request
+    openAiInstance.chat.completions.create(dataRequest).then(response => {
+        const csv = response?.choices?.[0].message?.content;
+        if (csv) {
+            recordData(csv.split(","));
+            ws.send(JSON.stringify({type: "data", csv}));
+        }
+    });
+
+    // Now, let's send the plain english request. This one will stream.
+    const currentEnglishPrompt = englishPrompt.replace("{{date}}", new Date().toLocaleString());
+    const englishRequest = {
+        model: "gpt-4",
+        messages: [{role: "user", content: currentEnglishPrompt + "\n" + message}],
         stream: true,
     };
 
-    const stream = await openAiInstance.beta.chat.completions.stream(requestData);
-
-    // Begin by collecting the JSON response.  Once this is completed, we will stream the results back to the client.
-    let jsonString = "";
+    // Fire off first request
+    const stream = openAiInstance.beta.chat.completions.stream(englishRequest);
     stream
         .on("content", data => {
-            if (jsonString === false) {
-                ws.send(JSON.stringify({type: "message", data}));
-            } else {
-                jsonString += data;
-                try {
-                    const json = JSON.parse(jsonString);
-                    // Send the JSON response to the client
-                    ws.send(JSON.stringify({type: "data", data: json}));
-                    jsonString = false;
-                    recordData(json);
-                } catch (error) {
-                    // JSON parsing failed, so we are still receiving data
-                }
-            }
+            // Stream remaining message to client
+            ws.send(JSON.stringify({type: "message", data}));
         })
         .on("end", () => {
             console.log("Stream ended"); // End of streaming
@@ -267,23 +278,42 @@ async function sendWelcomePrompt(ws) {
 }
 
 // Record the data in the database
-function recordData(obj) {
-    const params = [
-        obj.name,
-        obj.calories_low,
-        obj.fat_low,
-        obj.carbs_low,
-        obj.protein_low,
-        obj.calories,
-        obj.fat,
-        obj.carbs,
-        obj.protein,
-        obj.calories_high,
-        obj.fat_high,
-        obj.carbs_high,
-        obj.protein_high,
-        obj.consumed_at,
+function recordData(arr) {
+    const fields = [
+        "name",
+        "calories_low",
+        "calories",
+        "calories_high",
+        "protein_low",
+        "protein",
+        "protein_high",
+        "fat_low",
+        "fat",
+        "fat_high",
+        "carbs_low",
+        "carbs",
+        "carbs_high",
+        "fiber_low",
+        "fiber",
+        "fiber_high",
+        "alcohol_low",
+        "alcohol",
+        "alcohol_high",
+        "consumed_at",
     ];
+
+    // Skip these for now lolz
+    const skip = ["fiber_low", "fiber", "fiber_high", "alcohol_low", "alcohol", "alcohol_high"];
+
+    const params = [];
+    fields.forEach((d, i) => {
+        if (skip.includes(d)) return;
+        // Strip double quotes
+        const item = arr[i].replace(/"/g, "");
+        params.push(item);
+    });
+
+    console.log(params);
 
     const sql =
         "INSERT INTO items (name, calories_low, fat_low, carbs_low, protein_low, calories, fat, carbs, protein, calories_high, fat_high, carbs_high, protein_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -292,9 +322,7 @@ function recordData(obj) {
         if (err) {
             console.error(err.message);
         } else {
-            console.log(
-                `${obj.name}: ${obj.calories} calories, ${obj.fat}g of fat, ${obj.carbs}g of carbs, ${obj.protein}g of protein.  Consumed at ${obj.consumed_at}`
-            );
+            console.log(`Recorded ${params.join(", ")}`);
         }
     });
 }
