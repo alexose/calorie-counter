@@ -43,6 +43,12 @@
                     this.connected = newProp === "connected";
                     if (newProp === "connected") {
                         this.webSocket.onmessage = event => {
+                            const obj = JSON.parse(event.data);
+                            if (obj.type === "reload") {
+                                this.$emit("data-finished");
+                                return;
+                            }
+
                             const arr = this.messages;
                             const idx = this.messageIdx;
                             if (!arr[idx]) {
@@ -52,10 +58,8 @@
                                     body: "",
                                     datetime: new Date().toLocaleString(),
                                 };
-                                this.$emit("data-finished");
                             }
 
-                            const obj = JSON.parse(event.data);
                             if (obj.type === "message") {
                                 this.loading = false;
                                 arr[idx].body += obj.data;

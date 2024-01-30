@@ -222,7 +222,7 @@ async function sendAndStream(ws, message) {
     openAiInstance.chat.completions.create(dataRequest).then(response => {
         const csv = response?.choices?.[0].message?.content;
         if (csv) {
-            recordData(csv.split(","));
+            recordData(ws, csv.split(","));
             ws.send(JSON.stringify({type: "data", csv}));
         }
     });
@@ -278,7 +278,7 @@ async function sendWelcomePrompt(ws) {
 }
 
 // Record the data in the database
-function recordData(arr) {
+function recordData(ws, arr) {
     const fields = [
         "name",
         "calories_low",
@@ -323,6 +323,7 @@ function recordData(arr) {
             console.error(err.message);
         } else {
             console.log(`Recorded ${params.join(", ")}`);
+            ws.send(JSON.stringify({type: "reload"}));
         }
     });
 }
