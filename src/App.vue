@@ -11,6 +11,7 @@
                 startX: 0,
                 collapsed: true,
                 webSocket: null,
+                webSocketConnected: false,
                 reconnectTimeout: null,
             };
         },
@@ -45,13 +46,14 @@
                 const ws = this.webSocket;
 
                 ws.onopen = () => {
-                    this.connectedStatus = "Connected";
-                    console.log("WebSocket connected");
+                    this.webSocketConnected = true;
+                    console.log("WebSocket connected", this);
                     clearTimeout(this.reconnectTimeout);
                     return false;
                 };
 
                 ws.onclose = () => {
+                    this.webSocketConnected = false;
                     console.log("WebSocket closed");
                     this.reconnectWebSocket();
                 };
@@ -83,12 +85,13 @@
             const ws = this.webSocket;
 
             ws.onopen = () => {
-                this.connectedStatus = "Connected";
+                this.webSocketConnected = true;
                 console.log("WebSocket connected");
                 return false;
             };
 
             ws.onclose = () => {
+                this.webSocketConnected = false;
                 console.log("WebSocket closed");
                 this.reconnectWebSocket();
             };
@@ -108,8 +111,8 @@
             <ItemTable />
         </div>
         <div class="divider" @mousedown="startResize" v-if="!collapsed"></div>
-        <div class="right-pane chat-interface" v-if="!collapsed">
-            <ChatInterface :webSocket="webSocket" />
+        <div class="right-pane chat-interface" :class="{collapsed: collapsed}">
+            <ChatInterface :webSocket="webSocket" :webSocketConnected="webSocketConnected" />
         </div>
     </div>
     <div class="chat-toggle" @click="toggleChat">Chat!</div>
@@ -139,6 +142,11 @@
 
     .right-pane {
         width: 100%;
+    }
+
+    .right-pane.collapsed {
+        width: 0;
+        opacity: 0;
     }
 
     .divider {

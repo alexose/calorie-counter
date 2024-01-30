@@ -3,6 +3,7 @@
         name: "ChatInterface",
         props: {
             webSocket: Object,
+            webSocketConnected: Boolean,
         },
         data() {
             return {
@@ -10,41 +11,46 @@
                 connected: false,
                 messages: [],
                 messageIdx: 0,
+                loading: false,
             };
         },
         methods: {
             sendMessage() {
                 this.webSocket.send(this.input);
-                this.input = "";
+                (this.loading = true), (this.input = "");
             },
         },
         mounted() {
-            if (this.webSocket.readyState === WebSocket.OPEN) {
-                this.connected = true;
-            }
-
-            this.webSocket.onmessage = event => {
-                const arr = this.messages;
-                const idx = this.messageIdx;
-                if (!arr[idx]) arr[idx] = {id: idx, header: "", body: ""};
-                const obj = JSON.parse(event.data);
-                if (obj.type === "message") {
-                    arr[idx].body += obj.data;
-                } else if (obj.type === "end") {
-                    this.messageIdx++;
-                }
-            };
-
-            this.webSocket.onclose = event => {
-                this.connected = false;
-            };
+            console.log("why");
+            console.log(this.webSocketConnected);
         },
         watch: {
-            myArray: {
-                handler(newArray, oldArray) {
-                    console.log("myArray changed:", newArray);
+            webSocketConnected: {
+                immediate: true,
+                handler(newProp, oldProp) {
+                    console.log(newProp, oldProp);
+                    if (newProp === true) {
+                        this.connected = true;
+                        this.webSocket.onmessage = event => {
+                            const arr = this.messages;
+                            const idx = this.messageIdx;
+                            if (!arr[idx]) arr[idx] = {id: idx, header: "", body: ""};
+
+                            const obj = JSON.parse(event.data);
+                            if (obj.type === "message") {
+                                this.loading = false;
+                                arr[idx].body += obj.data;
+                            } else if (obj.type === "end") {
+                                this.loading = false;
+                                this.messageIdx++;
+                            }
+                        };
+
+                        this.webSocket.onclose = event => {
+                            this.connected = false;
+                        };
+                    }
                 },
-                deep: true,
             },
         },
     };
@@ -68,6 +74,7 @@
     </div>
     <div class="chat-input">
         <input type="text" @keydown.enter="sendMessage" v-model="input" />
+        <div class="spinner" v-if="loading"></div>
         <button @click="sendMessage">Send</button>
     </div>
 </template>
@@ -94,5 +101,21 @@
         border-radius: 5px;
         border: 1px solid #ccc;
         background-color: #eee;
+    }
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 </style>

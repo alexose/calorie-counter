@@ -199,10 +199,23 @@ async function sendAndStream(ws, message) {
 
     const stream = await openAiInstance.beta.chat.completions.stream(requestData);
 
-    // Handle streamed results
+    // Begin by collecting the JSON response.  Once this is completed, we will stream the results back to the client.
+    let jsonString = "";
     stream
         .on("content", data => {
-            ws.send(JSON.stringify({type: "message", data}));
+            if (jsonString === false) {
+                ws.send(JSON.stringify({type: "message", data}));
+            } else {
+                jsonString += data;
+                try {
+                    const json = JSON.parse(jsonString);
+                    // Send the JSON response to the client
+                    ws.send(JSON.stringify({type: "data", data: json}));
+                    jsonString = false;
+                } catch (error) {
+                    // JSON parsing failed, so we are still receiving data
+                }
+            }
         })
         .on("end", () => {
             console.log("Stream ended"); // End of streaming
