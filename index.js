@@ -191,9 +191,13 @@ app.delete("/items/:id", (req, res) => {
 
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
+    const date = new Date(2024, 0, 30);
+    const formattedDate = date.toISOString().split("T")[0];
+
+    const currentPrompt = prompt.replace("{{date}}", formattedDate);
     const requestData = {
         model: "gpt-4",
-        messages: [{role: "user", content: prompt + "\n" + message}],
+        messages: [{role: "user", content: currentPrompt + "\n" + message}],
         stream: true,
     };
 
@@ -249,8 +253,6 @@ function recordData(obj) {
 
     const sql =
         "INSERT INTO items (name, calories_low, fat_low, carbs_low, protein_low, calories, fat, carbs, protein, calories_high, fat_high, carbs_high, protein_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    console.log(params);
 
     db.run(sql, params, function (err) {
         if (err) {

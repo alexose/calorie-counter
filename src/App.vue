@@ -6,13 +6,14 @@
         data() {
             return {
                 isResizing: false,
-                leftWidth: null,
+                leftWidth: window.innerWidth / 1.5,
                 startWidth: 0,
                 startX: 0,
-                collapsed: true,
+                collapsed: false,
                 webSocket: null,
-                webSocketConnected: false,
+                webSocketStatus: "disconnected",
                 reconnectTimeout: null,
+                checkTimeout: null,
             };
         },
         components: {
@@ -40,26 +41,33 @@
                 document.addEventListener("mousemove", this.resizeHandler);
                 document.addEventListener("mouseup", this.stopResize);
             },
-            reconnectWebSocket() {
-                console.log("Reconnecting to WebSocket...");
+            checkConnection() {
+                if (this.webSocket.readyState !== this.webSocket.OPEN) {
+                    clearTimeout(this.checkTimeout);
+                    connectWebsocket();
+                } else {
+                    setTimeout(this.checkConnection, 200);
+                }
+            },
+            connectWebSocket() {
+                this.webSocketStatus = "connecting";
                 this.webSocket = new WebSocket(this.getWebSocketUrl());
                 const ws = this.webSocket;
 
                 ws.onopen = () => {
-                    this.webSocketConnected = true;
-                    console.log("WebSocket connected", this);
+                    this.webSocketStatus = "connected";
                     clearTimeout(this.reconnectTimeout);
+                    this.checkTimeout = setTimeout(this.checkConnection, 200);
                     return false;
                 };
 
                 ws.onclose = () => {
-                    this.webSocketConnected = false;
-                    console.log("WebSocket closed");
-                    this.reconnectWebSocket();
+                    this.webSocketStatus = "disconnected";
+                    this.connectWebSocket();
                 };
 
                 this.reconnectTimeout = setTimeout(() => {
-                    this.reconnectWebSocket();
+                    this.connectWebSocket();
                 }, 5000);
             },
             resizeHandler(event) {
@@ -81,26 +89,17 @@
             },
         },
         mounted() {
-            this.webSocket = new WebSocket(this.getWebSocketUrl());
-            const ws = this.webSocket;
-
-            ws.onopen = () => {
-                this.webSocketConnected = true;
-                console.log("WebSocket connected");
-                return false;
-            };
-
-            ws.onclose = () => {
-                this.webSocketConnected = false;
-                console.log("WebSocket closed");
-                this.reconnectWebSocket();
-            };
-
+            this.connectWebSocket();
             window.addEventListener("resize", () => {
                 if (!this.collapsed) {
                     this.leftWidth = window.innerWidth / 1.5;
                 }
             });
+        },
+        watch: {
+            webSocketStatus() {
+                console.log(this.webSocketStatus);
+            },
         },
     };
 </script>
@@ -112,10 +111,10 @@
         </div>
         <div class="divider" @mousedown="startResize" v-if="!collapsed"></div>
         <div class="right-pane chat-interface" :class="{collapsed: collapsed}">
-            <ChatInterface :webSocket="webSocket" :webSocketConnected="webSocketConnected" />
+            <ChatInterface :webSocket="webSocket" :webSocketStatus="webSocketStatus" />
         </div>
     </div>
-    <div class="chat-toggle" @click="toggleChat">Chat!</div>
+    <!-- <div class="chat-toggle" @click="toggleChat">Chat!</div> -->
 </template>
 
 <style scoped>

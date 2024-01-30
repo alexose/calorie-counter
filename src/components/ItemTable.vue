@@ -124,9 +124,6 @@
 <template>
     <div>
         <table class="table table-striped">
-            <caption>
-                Selected Items
-            </caption>
             <thead>
                 <tr>
                     <th scope="col">Calories</th>

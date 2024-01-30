@@ -3,7 +3,7 @@
         name: "ChatInterface",
         props: {
             webSocket: Object,
-            webSocketConnected: Boolean,
+            webSocketStatus: String,
         },
         data() {
             return {
@@ -20,17 +20,12 @@
                 (this.loading = true), (this.input = "");
             },
         },
-        mounted() {
-            console.log("why");
-            console.log(this.webSocketConnected);
-        },
         watch: {
-            webSocketConnected: {
+            webSocketStatus: {
                 immediate: true,
                 handler(newProp, oldProp) {
-                    console.log(newProp, oldProp);
-                    if (newProp === true) {
-                        this.connected = true;
+                    this.connected = newProp === "connected";
+                    if (newProp === "connected") {
                         this.webSocket.onmessage = event => {
                             const arr = this.messages;
                             const idx = this.messageIdx;
@@ -57,29 +52,46 @@
 </script>
 
 <template>
-    <div>
-        <h1>Chat Interface</h1>
-    </div>
-    <div class="messages">
-        <div v-for="message in messages" :key="message.id">
-            <div class="message">
-                <div class="message-header">
-                    <p>{{ message.header }}</p>
-                </div>
-                <div class="message-body">
-                    <p>{{ message.body }}</p>
+    <div :class="['chat', {connected: connected}]">
+        <div class="chat-connecting" v-if="!connected">
+            <p>Connecting...</p>
+        </div>
+        <div class="messages">
+            <div v-for="message in messages" :key="message.id">
+                <div class="message">
+                    <div class="message-header">
+                        <p>{{ message.header }}</p>
+                    </div>
+                    <div class="message-body">
+                        <p>{{ message.body }}</p>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="chat-input">
-        <input type="text" @keydown.enter="sendMessage" v-model="input" />
-        <div class="spinner" v-if="loading"></div>
-        <button @click="sendMessage">Send</button>
+        <div class="chat-input">
+            <input type="text" @keydown.enter="sendMessage" v-model="input" />
+            <div class="spinner" v-if="loading"></div>
+            <button @click="sendMessage">Send</button>
+        </div>
     </div>
 </template>
 
 <style scoped>
+    .chat {
+        opacity: 0.5;
+        position: relative;
+        height: 100%;
+    }
+    .chat.connected {
+        opacity: 1;
+    }
+    .chat-connecting {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+    }
     .chat-input {
         display: flex;
         flex-direction: row;
@@ -88,6 +100,8 @@
         padding: 10px 0;
         position: absolute;
         bottom: 0;
+        right: 0;
+        left: 0;
     }
     .chat-input input {
         flex: 1;
