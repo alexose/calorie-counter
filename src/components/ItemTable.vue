@@ -10,6 +10,7 @@
         },
         methods: {
             async getItems() {
+                console.log("getting items");
                 const response = await fetch("/items/last7days");
                 const obj = await response.json();
 

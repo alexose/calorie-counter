@@ -27,7 +27,13 @@
                 };
                 this.messageIdx++;
 
+                this.scroll();
+
                 (this.loading = true), (this.input = "");
+            },
+            scroll() {
+                const container = document.getElementById("scrollContainer");
+                container.scrollTop = container.scrollHeight;
             },
         },
         watch: {
@@ -57,6 +63,7 @@
                                 this.loading = false;
                                 this.messageIdx++;
                             }
+                            this.scroll();
                         };
 
                         this.webSocket.onclose = event => {
@@ -74,7 +81,7 @@
         <div class="chat-connecting" v-if="!connected">
             <p>Connecting...</p>
         </div>
-        <div class="messages">
+        <div class="messages" id="scrollContainer">
             <div v-for="message in messages" :key="message.id">
                 <div class="message">
                     <div class="message-datetime">
@@ -131,8 +138,13 @@
         border-radius: 5px;
         border: 1px solid #ccc;
     }
+    .messages {
+        max-height: calc(100vh - 100px);
+        overflow-y: auto;
+    }
     .message {
         margin-bottom: 30px;
+        margin-right: 20px;
     }
     .message-datetime {
         display: flex;

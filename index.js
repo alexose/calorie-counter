@@ -203,10 +203,7 @@ app.delete("/items/:id", (req, res) => {
 
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
-    const date = new Date(2024, 0, 30);
-    const formattedDate = date.toISOString().split("T")[0];
-
-    const currentPrompt = prompt.replace("{{date}}", formattedDate);
+    const currentPrompt = prompt.replace("{{date}}", new Date().toLocaleString());
     const requestData = {
         model: "gpt-4",
         messages: [{role: "user", content: currentPrompt + "\n" + message}],
