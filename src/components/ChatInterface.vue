@@ -16,7 +16,17 @@
         },
         methods: {
             sendMessage() {
-                this.webSocket.send(this.input);
+                this.webSocket.send(JSON.stringify({message: this.input}));
+                const arr = this.messages;
+                const idx = this.messageIdx;
+                arr[idx] = {
+                    id: idx,
+                    header: "Me",
+                    body: this.input,
+                    datetime: new Date().toLocaleString(),
+                };
+                this.messageIdx++;
+
                 (this.loading = true), (this.input = "");
             },
         },
@@ -29,7 +39,13 @@
                         this.webSocket.onmessage = event => {
                             const arr = this.messages;
                             const idx = this.messageIdx;
-                            if (!arr[idx]) arr[idx] = {id: idx, header: "", body: ""};
+                            if (!arr[idx])
+                                arr[idx] = {
+                                    id: idx,
+                                    header: "",
+                                    body: "",
+                                    datetime: new Date().toLocaleString(),
+                                };
 
                             const obj = JSON.parse(event.data);
                             if (obj.type === "message") {
@@ -59,6 +75,9 @@
         <div class="messages">
             <div v-for="message in messages" :key="message.id">
                 <div class="message">
+                    <div class="message-datetime">
+                        <p>{{ message.datetime }}</p>
+                    </div>
                     <div class="message-header">
                         <p>{{ message.header }}</p>
                     </div>
@@ -70,8 +89,8 @@
         </div>
         <div class="chat-input">
             <input type="text" @keydown.enter="sendMessage" v-model="input" />
-            <div class="spinner" v-if="loading"></div>
             <button @click="sendMessage">Send</button>
+            <div class="spinner" v-if="loading"></div>
         </div>
     </div>
 </template>
@@ -110,6 +129,18 @@
         border-radius: 5px;
         border: 1px solid #ccc;
     }
+    .message {
+        margin-bottom: 30px;
+    }
+    .message-datetime {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px 0;
+        color: #aaa;
+        font-variant: small-caps;
+        font-size: 12px;
+    }
     .chat-input button {
         padding: 10px;
         border-radius: 5px;
@@ -117,6 +148,7 @@
         background-color: #eee;
     }
     .spinner {
+        margin-left: 20px;
         border: 4px solid #f3f3f3;
         border-top: 4px solid #3498db;
         border-radius: 50%;
