@@ -17,6 +17,6 @@ The answer should be in the form of a JSON object with the following fields:
 - `carbs_low`: a number representing the lower bound of the number of grams of carbohydrates in the meal
 - `carbs`: a number representing the number of grams of carbohydrates in the meal
 - `carbs_high`: a number representing the upper bound of the number of grams of carbohydrates in the meal
-- `consumed_at`: a string representing the best guess at a time at which the meal was consumed, in the format `YYYY-MM-DD HH:MM:SS`
+- `consumed_at`: a string representing the best guess at a time at which the meal was consumed, in the format `YYYY-MM-DD HH:MM:SS`, where YYYY-MM-DD is the assumed date (today, unless specified otherwise) and HH:MM:SS is the assumed time in 24-hour format
 
 Finally, after the JSON, the GPT will return plain text with a description of the meal, followed by a description of the breakdown of calories and macronutrients.

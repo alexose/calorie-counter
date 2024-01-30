@@ -212,6 +212,7 @@ async function sendAndStream(ws, message) {
                     // Send the JSON response to the client
                     ws.send(JSON.stringify({type: "data", data: json}));
                     jsonString = false;
+                    recordData(json);
                 } catch (error) {
                     // JSON parsing failed, so we are still receiving data
                 }
@@ -227,6 +228,41 @@ async function sendAndStream(ws, message) {
         });
 }
 
+// Record the data in the database
+function recordData(obj) {
+    const params = [
+        obj.name,
+        obj.calories_low,
+        obj.fat_low,
+        obj.carbs_low,
+        obj.protein_low,
+        obj.calories,
+        obj.fat,
+        obj.carbs,
+        obj.protein,
+        obj.calories_high,
+        obj.fat_high,
+        obj.carbs_high,
+        obj.protein_high,
+        obj.consumed_at,
+    ];
+
+    const sql =
+        "INSERT INTO items (name, calories_low, fat_low, carbs_low, protein_low, calories, fat, carbs, protein, calories_high, fat_high, carbs_high, protein_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    console.log(params);
+
+    db.run(sql, params, function (err) {
+        if (err) {
+            console.error(err.message);
+        } else {
+            console.log(
+                `${obj.name}: ${obj.calories} calories, ${obj.fat}g of fat, ${obj.carbs}g of carbs, ${obj.protein}g of protein.  Consumed at ${obj.consumed_at}`
+            );
+        }
+    });
+}
+
 // Start the server
 const server = http.createServer(app);
 
@@ -237,8 +273,6 @@ wss.on("connection", function (ws) {
         sendAndStream(ws, message.toString());
         console.log("received: %s", message);
     });
-
-    ws.send("something");
 });
 
 server.listen(port, () => console.log(`Listening on port ${port}`));
