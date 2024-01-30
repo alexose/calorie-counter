@@ -21,7 +21,7 @@
                 const idx = this.messageIdx;
                 arr[idx] = {
                     id: idx,
-                    header: "Me",
+                    header: "Me:",
                     body: this.input,
                     datetime: new Date().toLocaleString(),
                 };
@@ -39,13 +39,15 @@
                         this.webSocket.onmessage = event => {
                             const arr = this.messages;
                             const idx = this.messageIdx;
-                            if (!arr[idx])
+                            if (!arr[idx]) {
                                 arr[idx] = {
                                     id: idx,
                                     header: "",
                                     body: "",
                                     datetime: new Date().toLocaleString(),
                                 };
+                                this.$emit("data-finished");
+                            }
 
                             const obj = JSON.parse(event.data);
                             if (obj.type === "message") {

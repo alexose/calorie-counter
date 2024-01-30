@@ -50,6 +50,9 @@
                     setTimeout(this.checkConnection, 200);
                 }
             },
+            handleDataFinished() {
+                this.$refs.itemTable.getItems();
+            },
             connectWebSocket() {
                 this.webSocketStatus = "connecting";
                 this.webSocket = new WebSocket(this.getWebSocketUrl());
@@ -113,11 +116,15 @@
     <div class="wrapper">
         <div class="left-pane item-table" :style="{width: collapsed ? '100%' : leftWidth + 'px'}">
             <h1>Alex's Calorie Tracker v1</h1>
-            <ItemTable />
+            <ItemTable ref="itemTable" />
         </div>
         <div class="divider" @mousedown="startResize" v-if="!collapsed"></div>
         <div class="right-pane chat-interface" :class="{collapsed: collapsed}">
-            <ChatInterface :webSocket="webSocket" :webSocketStatus="webSocketStatus" />
+            <ChatInterface
+                @data-finished="handleDataFinished"
+                :webSocket="webSocket"
+                :webSocketStatus="webSocketStatus"
+            />
         </div>
     </div>
     <!-- <div class="chat-toggle" @click="toggleChat">Chat!</div> -->
