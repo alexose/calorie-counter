@@ -244,6 +244,31 @@ async function sendAndStream(ws, message) {
         });
 }
 
+async function sendWelcomePrompt(ws) {
+    const welcomePrompt = "Please welcome the user to Alex's calorie tracker version one.";
+
+    const requestData = {
+        model: "gpt-4",
+        messages: [{role: "user", content: welcomePrompt}],
+        stream: true,
+    };
+
+    const stream = await openAiInstance.beta.chat.completions.stream(requestData);
+
+    stream
+        .on("content", data => {
+            ws.send(JSON.stringify({type: "message", data}));
+        })
+        .on("end", () => {
+            console.log("Stream ended"); // End of streaming
+            ws.send(JSON.stringify({type: "end"}));
+        })
+        .on("error", error => {
+            console.error("Error:", error.message); // Handle errors
+            ws.send(JSON.stringify({type: "error", data: error.message}));
+        });
+}
+
 // Record the data in the database
 function recordData(obj) {
     const params = [
@@ -283,8 +308,16 @@ const server = http.createServer(app);
 const wss = new ws.WebSocketServer({server: server});
 
 wss.on("connection", function (ws) {
-    ws.on("message", function (message) {
-        sendAndStream(ws, message.toString());
+    ws.on("message", function (json) {
+        const message = JSON.parse(json).message;
+        if (message === "ping") {
+            ws.send("pong");
+            return;
+        } else if (message === "welcomePrompt") {
+            sendWelcomePrompt(ws);
+        } else {
+            sendAndStream(ws, message.toString());
+        }
         console.log("received: %s", message);
     });
 });

@@ -14,6 +14,7 @@
                 webSocketStatus: "disconnected",
                 reconnectTimeout: null,
                 checkTimeout: null,
+                firstLoad: true,
             };
         },
         components: {
@@ -44,7 +45,7 @@
             checkConnection() {
                 if (this.webSocket.readyState !== this.webSocket.OPEN) {
                     clearTimeout(this.checkTimeout);
-                    connectWebsocket();
+                    this.connectWebSocket();
                 } else {
                     setTimeout(this.checkConnection, 200);
                 }
@@ -57,6 +58,10 @@
                 ws.onopen = () => {
                     this.webSocketStatus = "connected";
                     clearTimeout(this.reconnectTimeout);
+                    if (this.firstLoad) {
+                        this.webSocket.send(JSON.stringify({message: "welcomePrompt"}));
+                        this.firstLoad = false;
+                    }
                     this.checkTimeout = setTimeout(this.checkConnection, 200);
                     return false;
                 };
@@ -107,6 +112,7 @@
 <template>
     <div class="wrapper">
         <div class="left-pane item-table" :style="{width: collapsed ? '100%' : leftWidth + 'px'}">
+            <h1>Alex's Calorie Tracker v1</h1>
             <ItemTable />
         </div>
         <div class="divider" @mousedown="startResize" v-if="!collapsed"></div>
