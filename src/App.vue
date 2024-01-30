@@ -11,6 +11,7 @@
                 startX: 0,
                 collapsed: true,
                 webSocket: null,
+                reconnectTimeout: null,
             };
         },
         components: {
@@ -37,6 +38,27 @@
                 this.startWidth = this.leftWidth;
                 document.addEventListener("mousemove", this.resizeHandler);
                 document.addEventListener("mouseup", this.stopResize);
+            },
+            reconnectWebSocket() {
+                console.log("Reconnecting to WebSocket...");
+                this.webSocket = new WebSocket(this.getWebSocketUrl());
+                const ws = this.webSocket;
+
+                ws.onopen = () => {
+                    this.connectedStatus = "Connected";
+                    console.log("WebSocket connected");
+                    clearTimeout(this.reconnectTimeout);
+                    return false;
+                };
+
+                ws.onclose = () => {
+                    console.log("WebSocket closed");
+                    this.reconnectWebSocket();
+                };
+
+                this.reconnectTimeout = setTimeout(() => {
+                    this.reconnectWebSocket();
+                }, 5000);
             },
             resizeHandler(event) {
                 if (this.isResizing) {
@@ -68,6 +90,7 @@
 
             ws.onclose = () => {
                 console.log("WebSocket closed");
+                this.reconnectWebSocket();
             };
 
             window.addEventListener("resize", () => {
@@ -104,9 +127,18 @@
     }
 
     .left-pane,
+    .divider {
+        flex-shrink: 0;
+    }
+
+    .left-pane,
     .right-pane {
         padding: 20px;
         overflow: auto;
+    }
+
+    .right-pane {
+        width: 100%;
     }
 
     .divider {

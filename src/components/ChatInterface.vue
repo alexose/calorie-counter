@@ -14,8 +14,8 @@
         },
         methods: {
             sendMessage() {
-                console.log(this.input);
                 this.webSocket.send(this.input);
+                this.input = "";
             },
         },
         mounted() {
@@ -24,11 +24,15 @@
             }
 
             this.webSocket.onmessage = event => {
-                console.log(event.data);
                 const arr = this.messages;
                 const idx = this.messageIdx;
                 if (!arr[idx]) arr[idx] = {id: idx, header: "", body: ""};
-                arr[idx].body += event.data;
+                const obj = JSON.parse(event.data);
+                if (obj.type === "message") {
+                    arr[idx].body += obj.data;
+                } else if (obj.type === "end") {
+                    this.messageIdx++;
+                }
             };
 
             this.webSocket.onclose = event => {
@@ -62,10 +66,33 @@
             </div>
         </div>
     </div>
-    <div class="input">
+    <div class="chat-input">
         <input type="text" @keydown.enter="sendMessage" v-model="input" />
         <button @click="sendMessage">Send</button>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+    .chat-input {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        position: absolute;
+        bottom: 0;
+    }
+    .chat-input input {
+        flex: 1;
+        margin-right: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .chat-input button {
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background-color: #eee;
+    }
+</style>

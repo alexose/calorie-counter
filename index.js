@@ -189,6 +189,7 @@ app.delete("/items/:id", (req, res) => {
 
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
+    console.log(message);
     const requestData = {
         model: "gpt-4",
         messages: [{role: "user", content: message}],
@@ -200,13 +201,15 @@ async function sendAndStream(ws, message) {
     // Handle streamed results
     stream
         .on("content", data => {
-            ws.send(data); // Send the data back to the client
+            ws.send(JSON.stringify({type: "message", data}));
         })
         .on("end", () => {
             console.log("Stream ended"); // End of streaming
+            ws.send(JSON.stringify({type: "end"}));
         })
         .on("error", error => {
             console.error("Error:", error.message); // Handle errors
+            ws.send(JSON.stringify({type: "error", data: error.message}));
         });
 }
 
