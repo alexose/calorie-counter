@@ -105,6 +105,18 @@ app.post("/items", (req, res) => {
     });
 });
 
+// DELETE
+app.delete("/item/:id", (req, res) => {
+    const {id} = req.params;
+    db.run("DELETE FROM items WHERE id = ?", id, function (err) {
+        if (err) {
+            res.status(500).json({error: err.message});
+            return;
+        }
+        res.status(200).json({message: `Row(s) deleted: ${this.changes}`});
+    });
+});
+
 // READ
 app.get("/items", (req, res) => {
     db.all("SELECT * FROM items ORDER BY consumed_at DESC", [], (err, rows) => {

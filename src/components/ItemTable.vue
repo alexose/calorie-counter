@@ -25,6 +25,14 @@
                 this.items = items;
                 this.selectToday();
             },
+            deleteItem(item) {
+                fetch(`/items/${item.id}`, {
+                    method: "DELETE",
+                }).then(() => {
+                    this.items = this.items.filter(i => i.id !== item.id);
+                    this.selected = this.selected.filter(i => i.id !== item.id);
+                });
+            },
             toggleItem(item) {
                 // If item is selected, remove it from the array.  Otherwise, add it to the array
                 this.selected = this.selected.includes(item)
@@ -158,6 +166,7 @@
                     <th scope="col">Carbs</th>
                     <th scope="col">Fat</th>
                     <th scope="col">Protein</th>
+                    <th scope="col"><!-- controls --></th>
                 </tr>
             </thead>
             <tbody>
@@ -175,6 +184,9 @@
                     <td :title="estimates(item, 'carbs')">{{ item.carbs }}</td>
                     <td :title="estimates(item, 'fat')">{{ item.fat }}</td>
                     <td :title="estimates(item, 'protein')">{{ item.protein }}</td>
+                    <td>
+                        <button type="button" class="delete" @click="deleteItem(item)">X</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -242,6 +254,18 @@
 
     tr.isEvenDate {
         border-left: 5px solid #e6f2ff;
+    }
+
+    td button.delete {
+        border: none;
+        background-color: transparent;
+        color: #333;
+        cursor: pointer;
+        opacity: 0;
+    }
+
+    tr:hover button.delete {
+        opacity: 1;
     }
 
     table.dragging {
