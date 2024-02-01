@@ -229,8 +229,8 @@ async function sendAndStream(ws, message) {
                 console.error(e);
             }
 
-            arr.forEach(obj => {
-                recordData(ws, obj);
+            arr.forEach(d => {
+                recordData(ws, d);
             });
             ws.send(JSON.stringify({type: "data", arr}));
         }
@@ -287,7 +287,7 @@ async function sendWelcomePrompt(ws) {
 }
 
 // Record the data in the database
-async function recordData(ws, obj) {
+async function recordData(ws, arr) {
     const fields = [
         "name",
         "calories_low",
@@ -315,9 +315,9 @@ async function recordData(ws, obj) {
     const skip = ["fiber_low", "fiber", "fiber_high", "alcohol_low", "alcohol", "alcohol_high"];
 
     const params = [];
-    fields.forEach(d => {
+    fields.forEach((d, i) => {
         if (skip.includes(d)) return;
-        params.push(obj[d]);
+        params.push(arr[i]);
     });
 
     const sql =
