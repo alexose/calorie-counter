@@ -211,7 +211,7 @@ app.delete("/items/:id", (req, res) => {
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
     // We're going to make two requests:  One for raw data, and one for plain english.
-    // Begin by gathering the CSV response. This one doesn't need to stream.
+    // Begin by gathering the JSON response. This one doesn't need to stream.
     const currentDataPrompt = dataPrompt.replace("{{date}}", new Date().toLocaleString());
     const dataRequest = {
         model: "gpt-4",
@@ -219,11 +219,17 @@ async function sendAndStream(ws, message) {
     };
 
     // Fire off first request
-    openAiInstance.chat.completions.create(dataRequest).then(response => {
-        const csv = response?.choices?.[0].message?.content;
-        if (csv) {
-            recordData(ws, csv.split(","));
-            ws.send(JSON.stringify({type: "data", csv}));
+    openAiInstance.chat.completions.create(dataRequest).then(async response => {
+        const json = response?.choices?.[0].message?.content;
+        if (json) {
+            let obj;
+            try {
+                obj = JSON.parse(json);
+            } catch (e) {
+                console.error(e);
+            }
+            await recordData(ws, obj);
+            ws.send(JSON.stringify({type: "data", obj}));
         }
     });
 
@@ -278,7 +284,7 @@ async function sendWelcomePrompt(ws) {
 }
 
 // Record the data in the database
-function recordData(ws, arr) {
+async function recordData(ws, obj) {
     const fields = [
         "name",
         "calories_low",
@@ -306,14 +312,10 @@ function recordData(ws, arr) {
     const skip = ["fiber_low", "fiber", "fiber_high", "alcohol_low", "alcohol", "alcohol_high"];
 
     const params = [];
-    fields.forEach((d, i) => {
+    fields.forEach(d => {
         if (skip.includes(d)) return;
-        // Strip double quotes
-        const item = arr[i].replace(/"/g, "");
-        params.push(item);
+        params.push(obj[d]);
     });
-
-    console.log(params);
 
     const sql =
         "INSERT INTO items (name, calories_low, fat_low, carbs_low, protein_low, calories, fat, carbs, protein, calories_high, fat_high, carbs_high, protein_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
