@@ -222,14 +222,17 @@ async function sendAndStream(ws, message) {
     openAiInstance.chat.completions.create(dataRequest).then(async response => {
         const json = response?.choices?.[0].message?.content;
         if (json) {
-            let obj;
+            let arr;
             try {
-                obj = JSON.parse(json);
+                arr = JSON.parse(json);
             } catch (e) {
                 console.error(e);
             }
-            await recordData(ws, obj);
-            ws.send(JSON.stringify({type: "data", obj}));
+
+            arr.forEach(obj => {
+                recordData(ws, obj);
+            });
+            ws.send(JSON.stringify({type: "data", arr}));
         }
     });
 
@@ -318,7 +321,7 @@ async function recordData(ws, obj) {
     });
 
     const sql =
-        "INSERT INTO items (name, calories_low, fat_low, carbs_low, protein_low, calories, fat, carbs, protein, calories_high, fat_high, carbs_high, protein_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO items (name, calories_low, calories, calories_high, protein_low, protein, protein_high, fat_low, fat, fat_high, carbs_low, carbs, carbs_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     db.run(sql, params, function (err) {
         if (err) {
