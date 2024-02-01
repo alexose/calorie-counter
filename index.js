@@ -288,46 +288,14 @@ async function sendWelcomePrompt(ws) {
 
 // Record the data in the database
 async function recordData(ws, arr) {
-    const fields = [
-        "name",
-        "calories_low",
-        "calories",
-        "calories_high",
-        "protein_low",
-        "protein",
-        "protein_high",
-        "fat_low",
-        "fat",
-        "fat_high",
-        "carbs_low",
-        "carbs",
-        "carbs_high",
-        "fiber_low",
-        "fiber",
-        "fiber_high",
-        "alcohol_low",
-        "alcohol",
-        "alcohol_high",
-        "consumed_at",
-    ];
-
-    // Skip these for now lolz
-    const skip = ["fiber_low", "fiber", "fiber_high", "alcohol_low", "alcohol", "alcohol_high"];
-
-    const params = [];
-    fields.forEach((d, i) => {
-        if (skip.includes(d)) return;
-        params.push(arr[i]);
-    });
-
     const sql =
         "INSERT INTO items (name, calories_low, calories, calories_high, protein_low, protein, protein_high, fat_low, fat, fat_high, carbs_low, carbs, carbs_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-    db.run(sql, params, function (err) {
+    db.run(sql, arr, function (err) {
         if (err) {
             console.error(err.message);
         } else {
-            console.log(`Recorded ${params.join(", ")}`);
+            console.log(`Recorded ${arr.join(", ")}`);
             ws.send(JSON.stringify({type: "reload"}));
         }
     });
