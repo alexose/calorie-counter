@@ -71,6 +71,9 @@
                     return itemDate >= weekAgo && itemDate <= today;
                 });
             },
+            rounded(num) {
+                return Math.floor(num * 10) / 10;
+            },
             humanizeDate(date) {
                 return new Date(date).toLocaleString();
             },
@@ -143,10 +146,10 @@
             </thead>
             <tbody>
                 <tr>
-                    <td :title="estimates(totals, 'calories')">{{ totals?.calories }}</td>
-                    <td>{{ totals?.carbs }}</td>
-                    <td>{{ totals?.fat }}</td>
-                    <td>{{ totals?.protein }}</td>
+                    <td :title="estimates(totals, 'calories')">{{ rounded(totals?.calories || 0) }}</td>
+                    <td>{{ rounded(totals?.carbs || 0) }}</td>
+                    <td>{{ rounded(totals?.fat || 0) }}</td>
+                    <td>{{ rounded(totals?.protein || 0) }}</td>
                 </tr>
             </tbody>
         </table>
