@@ -53,6 +53,24 @@
                     return itemDate === today;
                 });
             },
+            calculateMarginOfError(values, field) {
+                console.log(values, field);
+                if (!values || !values[field]) {
+                    return "";
+                }
+                const low = values[field + "_low"];
+                const middle = values[field];
+                const high = values[field + "_high"];
+
+                if (low === 0 || middle === 0 || high === 0) {
+                    return "";
+                }
+                const lowDiff = Math.abs(middle - low);
+                const highDiff = Math.abs(middle - high);
+                const max = Math.max(lowDiff, highDiff);
+                const percentage = (max / middle) * 100;
+                return `${this.rounded(percentage)}%`;
+            },
             selectYesterday() {
                 const today = new Date();
                 const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
@@ -142,6 +160,7 @@
                     <th scope="col">Carbs</th>
                     <th scope="col">Fat</th>
                     <th scope="col">Protein</th>
+                    <th scope="col">Margin</th>
                 </tr>
             </thead>
             <tbody>
@@ -150,6 +169,7 @@
                     <td>{{ rounded(totals?.carbs || 0) }}</td>
                     <td>{{ rounded(totals?.fat || 0) }}</td>
                     <td>{{ rounded(totals?.protein || 0) }}</td>
+                    <td>{{ calculateMarginOfError(totals, "calories") }}</td>
                 </tr>
             </tbody>
         </table>
