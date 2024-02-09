@@ -99,11 +99,6 @@
                 }
             });
         },
-        watch: {
-            webSocketStatus() {
-                console.log(this.webSocketStatus);
-            },
-        },
     };
 </script>
 

@@ -43,6 +43,7 @@
                 immediate: true,
                 handler(newProp, oldProp) {
                     this.connected = newProp === "connected";
+                    console.log(newProp, oldProp);
                     if (newProp === "connected") {
                         this.webSocket.onmessage = event => {
                             const obj = JSON.parse(event.data);
