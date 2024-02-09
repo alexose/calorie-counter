@@ -9,7 +9,7 @@ Each item MUST have the following properties, in order:
 [name, calories_low, calories, calories_high, protein_low, protein, protein_high, fat_low, fat, fat_high, carbs_low, carbs, carbs_high, consumed_at]
 
 Where:
-- `name`: a string representing the name of the item
+- `name`: a string representing the name of the item, in proper case
 - `calories_low`: a number representing the lower bound of the number of calories in the item
 - `calories`: a number representing the number of calories in the item
 - `calories_high`: a number representing the upper bound of the number of calories in the item
