@@ -47,12 +47,14 @@
             },
             connectWebSocket() {
                 this.webSocketStatus = "connecting";
+                console.log("connecting");
                 this.webSocket = new WebSocket(this.getWebSocketUrl());
+                console.log(this.webSocket);
+                console.log("connected");
                 const ws = this.webSocket;
 
                 ws.onopen = () => {
                     this.webSocketStatus = "connected";
-                    clearTimeout(this.reconnectTimeout);
                     if (this.firstLoad) {
                         this.webSocket.send(JSON.stringify({message: "welcomePrompt"}));
                         this.firstLoad = false;
