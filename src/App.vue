@@ -47,7 +47,7 @@
             },
             connectWebSocket() {
                 this.webSocketStatus = "connecting";
-                console.log("connecting");
+                this.webSocket = new WebSocket(this.getWebSocketUrl());
                 const ws = this.webSocket;
 
                 ws.onopen = () => {
@@ -90,7 +90,6 @@
             },
         },
         mounted() {
-            this.webSocket = new WebSocket(this.getWebSocketUrl());
             this.connectWebSocket();
             window.addEventListener("resize", () => {
                 if (!this.collapsed) {
