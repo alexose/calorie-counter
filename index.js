@@ -212,7 +212,8 @@ app.delete("/items/:id", (req, res) => {
 async function sendAndStream(ws, message) {
     // We're going to make two requests:  One for raw data, and one for plain english.
     // Begin by gathering the JSON response. This one doesn't need to stream.
-    const currentDataPrompt = dataPrompt.replace("{{date}}", new Date().toLocaleString());
+    const currentDataPrompt = dataPrompt.replace("{{date}}", new Date().toISOString());
+    console.log(new Date().toISOString());
     const dataRequest = {
         model: "gpt-4",
         messages: [{role: "user", content: currentDataPrompt + "\n" + message}],
