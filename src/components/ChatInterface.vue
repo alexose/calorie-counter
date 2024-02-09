@@ -8,6 +8,7 @@
         data() {
             return {
                 input: "",
+                error: "",
                 connected: false,
                 messages: [],
                 messageIdx: 0,
@@ -19,6 +20,7 @@
                 this.webSocket.send(JSON.stringify({message: this.input}));
                 const arr = this.messages;
                 const idx = this.messageIdx;
+                this.error = null;
                 arr[idx] = {
                     id: idx,
                     header: "Me:",
@@ -46,6 +48,10 @@
                             const obj = JSON.parse(event.data);
                             if (obj.type === "reload") {
                                 this.$emit("data-finished");
+                                return;
+                            }
+                            if (obj.type === "error") {
+                                this.error = obj.data;
                                 return;
                             }
 
@@ -99,6 +105,7 @@
                     </div>
                 </div>
             </div>
+            <p v-if="error" style="color: red">{{ error }}</p>
         </div>
         <div class="chat-input">
             <input type="text" @keydown.enter="sendMessage" v-model="input" />

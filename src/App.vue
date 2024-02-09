@@ -42,14 +42,6 @@
                 document.addEventListener("mousemove", this.resizeHandler);
                 document.addEventListener("mouseup", this.stopResize);
             },
-            checkConnection() {
-                if (this.webSocket.readyState !== this.webSocket.OPEN) {
-                    clearTimeout(this.checkTimeout);
-                    this.connectWebSocket();
-                } else {
-                    setTimeout(this.checkConnection, 200);
-                }
-            },
             handleDataFinished() {
                 this.$refs.itemTable.getItems();
             },
@@ -65,19 +57,19 @@
                         this.webSocket.send(JSON.stringify({message: "welcomePrompt"}));
                         this.firstLoad = false;
                     }
-                    this.checkTimeout = setTimeout(this.checkConnection, 200);
                     return false;
                 };
 
-                ws.onclose = () => {
+                ws.onclose = event => {
                     this.webSocketStatus = "disconnected";
-                    this.connectWebSocket();
+                    console.log("disconnected");
+                    console.log(event);
+                    if (!event.wasClean) {
+                        this.setTimeout(() => {
+                            this.connectWebSocket();
+                        }, 1000);
+                    }
                 };
-
-                this.reconnectTimeout = setTimeout(() => {
-                    console.log("EHHHHU");
-                    this.connectWebSocket();
-                }, 5000);
             },
             resizeHandler(event) {
                 if (this.isResizing) {

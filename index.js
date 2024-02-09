@@ -220,7 +220,7 @@ async function sendAndStream(ws, message) {
     };
 
     // Fire off first request
-    openAiInstance.chat.completions.create(dataRequest).then(async response => {
+    await openAiInstance.chat.completions.create(dataRequest).then(async response => {
         const json = response?.choices?.[0].message?.content;
         if (json) {
             let arr;
@@ -228,6 +228,8 @@ async function sendAndStream(ws, message) {
                 arr = JSON.parse(json);
             } catch (e) {
                 console.error(e);
+                ws.send(JSON.stringify({type: "error", data: json}));
+                return;
             }
 
             arr.forEach(d => {
