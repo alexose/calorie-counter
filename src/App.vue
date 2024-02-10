@@ -47,9 +47,7 @@
             },
             connectWebSocket() {
                 this.webSocketStatus = "connecting";
-                console.log("trying to connect to " + this.getWebSocketUrl());
                 this.webSocket = new WebSocket(this.getWebSocketUrl());
-                console.log("toot toot", this.webSocket);
                 const ws = this.webSocket;
 
                 ws.onopen = () => {
@@ -63,7 +61,6 @@
 
                 ws.onclose = event => {
                     this.webSocketStatus = "disconnected";
-                    console.log("toot bloop", event);
                     if (!event.wasClean) {
                         this.setTimeout(() => {
                             this.connectWebSocket();
