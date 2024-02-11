@@ -62,7 +62,7 @@
                 ws.onclose = event => {
                     this.webSocketStatus = "disconnected";
                     if (!event.wasClean) {
-                        this.setTimeout(() => {
+                        setTimeout(() => {
                             this.connectWebSocket();
                         }, 1000);
                     }
