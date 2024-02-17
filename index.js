@@ -326,7 +326,29 @@ const server = http.createServer(app);
 
 const wss = new ws.WebSocketServer({server: server});
 
-wss.on("connection", function (ws) {
+wss.on("connection", async function (ws, request) {
+    const hash = request.url.replace("/ws/", "");
+
+    if (!hash || hash.length < 10) {
+        ws.close();
+        return;
+    }
+
+    // Get session information from the database
+    const sql = "SELECT * FROM sessions WHERE token = ?";
+    const session = await new Promise((resolve, reject) => {
+        db.get(sql, hash, (err, row) => {
+            if (err) {
+                ws.send(JSON.stringify({type: "no_session"}));
+                reject(err);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+
+    ws.send(JSON.stringify({type: "session", data: session}));
+
     ws.on("message", function (json) {
         const message = JSON.parse(json).message;
         if (message === "ping") {

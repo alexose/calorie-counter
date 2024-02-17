@@ -33,9 +33,9 @@
                 })
                     .then(response => response.json())
                     .then(async data => {
+                        window.location.hash = data.sessionId;
                         await this.connectWebSocket();
                         this.loading = false;
-                        window.location.hash = data.sessionId;
                     })
                     .catch(error => {
                         console.error("Error:", error);
@@ -102,7 +102,8 @@
             getWebSocketUrl() {
                 const protocol = window.location.protocol === "https:" ? "wss" : "ws";
                 const host = window.location.host;
-                const path = "/ws";
+                const hash = window.location.hash.replace("#", "");
+                const path = "/ws/" + hash;
                 return `${protocol}://${host}${path}`;
             },
         },
