@@ -2,6 +2,7 @@ const sqlite3 = require("sqlite3").verbose();
 const db = new sqlite3.Database("./data.db");
 
 db.serialize(() => {
+    // Create items table
     db.run(
         `CREATE TABLE items (
             id INTEGER PRIMARY KEY,
@@ -20,6 +21,19 @@ db.serialize(() => {
             protein_high REAL NOT NULL,
             consumed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );`
+    );
+
+    // Create sessions table
+    db.run(
+        `CREATE TABLE sessions (
+            id INTEGER PRIMARY KEY,
+            token TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            calorie_target REAL NOT NULL
+            protein_target REAL NOT NULL
+            fat_target REAL NOT NULL
+            carbs_target REAL NOT NULL
         );`
     );
 });
