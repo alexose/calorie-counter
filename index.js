@@ -44,6 +44,13 @@ app.use(express.static("dist"));
 // Require auth for the rest of the endpoints
 app.use(authenticate);
 
+// Start new session
+app.post("/session", (req, res) => {
+    // Generate a 20 character random string
+    const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    res.status(200).json({sessionId});
+});
+
 // CREATE
 app.post("/items", (req, res) => {
     const itemsArray = req.body.items;

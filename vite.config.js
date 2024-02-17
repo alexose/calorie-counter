@@ -13,6 +13,11 @@ export default defineConfig({
     },
     server: {
         proxy: {
+            "/session": {
+                target: "http://localhost:3003",
+                changeOrigin: true,
+                secure: false,
+            },
             "/items": {
                 target: "http://localhost:3003",
                 changeOrigin: true,

@@ -9,6 +9,7 @@
                 leftWidth: window.innerWidth / 1.5,
                 startWidth: 0,
                 startX: 0,
+                showIntro: null,
                 collapsed: false,
                 webSocket: null,
                 webSocketStatus: "disconnected",
@@ -22,6 +23,25 @@
             ChatInterface,
         },
         methods: {
+            async begin() {
+                this.showIntro = false;
+                this.loading = true;
+
+                // Request a new session
+                fetch("/session", {
+                    method: "POST",
+                })
+                    .then(response => response.json())
+                    .then(async data => {
+                        await this.connectWebSocket();
+                        this.loading = false;
+                        window.location.hash = data.sessionId;
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        this.loading = false;
+                    });
+            },
             toggleChat() {
                 // Calculate 66% of the width of the viewport
                 this.leftWidth = this.leftWidth || window.innerWidth / 1.5;
@@ -45,7 +65,7 @@
             handleDataFinished() {
                 this.$refs.itemTable.getItems();
             },
-            connectWebSocket() {
+            async connectWebSocket() {
                 this.webSocketStatus = "connecting";
                 this.webSocket = new WebSocket(this.getWebSocketUrl());
                 const ws = this.webSocket;
@@ -87,7 +107,13 @@
             },
         },
         mounted() {
-            this.connectWebSocket();
+            // We don't have a hash, display the introduction modal
+            if (!window.location.hash) {
+                this.showIntro = true;
+            } else {
+                this.showIntro = false;
+                this.connectWebSocket();
+            }
             window.addEventListener("resize", () => {
                 if (!this.collapsed) {
                     this.leftWidth = window.innerWidth / 1.5;
@@ -98,7 +124,18 @@
 </script>
 
 <template>
-    <div class="wrapper">
+    <div v-if="showIntro" class="intro-modal">
+        <div class="intro-modal-inner">
+            <h1>Welcome to Alex's Calorie Tracker</h1>
+            <p>
+                This is a simple calorie tracker that allows you to add, edit, and delete items from your daily intake.
+                You can also chat with the server to20get some helpful tips and tricks.
+            </p>
+            <button @click="begin">Get Started</button>
+            <div class="spinner" v-if="loading"></div>
+        </div>
+    </div>
+    <div v-if="showIntro === false" class="wrapper">
         <div class="left-pane item-table" :style="{width: collapsed ? '100%' : leftWidth + 'px'}">
             <h1>Alex's Calorie Tracker v1</h1>
             <ItemTable ref="itemTable" />
@@ -124,6 +161,23 @@
         display: flex;
         flex-direction: row;
         height: 100vh;
+    }
+
+    .intro-modal {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 20px;
+    }
+
+    .intro-modal-inner {
+        max-width: 600px;
+        margin: 0 auto;
+        border: 5px solid #ccc;
+        border-radius: 20px;
+        padding: 50px;
     }
 
     .left-pane,
@@ -202,6 +256,23 @@
             display: flex;
             place-items: flex-start;
             flex-wrap: wrap;
+        }
+    }
+    .spinner {
+        margin-left: 20px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #3498db;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
         }
     }
 </style>
