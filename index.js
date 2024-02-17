@@ -48,7 +48,17 @@ app.use(authenticate);
 app.post("/session", (req, res) => {
     // Generate a 20 character random string
     const sessionId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-    res.status(200).json({sessionId});
+
+    // Save the session ID in the database
+    const sql = "INSERT INTO sessions (token) VALUES (?)";
+    db.run(sql, sessionId, function (err) {
+        if (err) {
+            res.status(500).json({error: err.message});
+            return;
+        } else {
+            res.status(200).json({sessionId});
+        }
+    });
 });
 
 // CREATE

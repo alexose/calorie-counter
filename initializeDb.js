@@ -29,11 +29,11 @@ db.serialize(() => {
         `CREATE TABLE sessions (
             id INTEGER PRIMARY KEY,
             token TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            calorie_target REAL NOT NULL
-            protein_target REAL NOT NULL
-            fat_target REAL NOT NULL
-            carbs_target REAL NOT NULL
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            calorie_target REAL,
+            protein_target REAL,
+            fat_target REAL,
+            carbs_target REAL
         );`
     );
 });
