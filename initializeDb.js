@@ -6,6 +6,7 @@ db.serialize(() => {
     db.run(
         `CREATE TABLE items (
             id INTEGER PRIMARY KEY,
+            session_token TEXT NOT NULL,
             name TEXT NOT NULL,
             calories_low REAL NOT NULL,
             fat_low REAL NOT NULL,
