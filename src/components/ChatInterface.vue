@@ -4,14 +4,14 @@
         props: {
             webSocket: Object,
             webSocketStatus: String,
+            messages: Array,
+            messageIdx: Number,
         },
         data() {
             return {
                 input: "",
                 error: "",
                 connected: false,
-                messages: [],
-                messageIdx: 0,
                 loading: false,
             };
         },
@@ -30,7 +30,6 @@
                 this.messageIdx++;
 
                 this.scroll();
-
                 (this.loading = true), (this.input = "");
             },
             scroll() {
@@ -43,39 +42,6 @@
                 immediate: true,
                 handler(newProp, oldProp) {
                     this.connected = newProp === "connected";
-                    if (newProp === "connected") {
-                        this.webSocket.onmessage = event => {
-                            const obj = JSON.parse(event.data);
-                            if (obj.type === "reload") {
-                                this.$emit("data-finished");
-                                return;
-                            }
-                            if (obj.type === "error") {
-                                this.error = obj.data;
-                                return;
-                            }
-
-                            const arr = this.messages;
-                            const idx = this.messageIdx;
-                            if (!arr[idx]) {
-                                arr[idx] = {
-                                    id: idx,
-                                    header: "",
-                                    body: "",
-                                    datetime: new Date().toLocaleString(),
-                                };
-                            }
-
-                            if (obj.type === "message") {
-                                this.loading = false;
-                                arr[idx].body += obj.data;
-                            } else if (obj.type === "end") {
-                                this.loading = false;
-                                this.messageIdx++;
-                            }
-                            this.scroll();
-                        };
-                    }
                 },
             },
         },
