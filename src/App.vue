@@ -148,7 +148,15 @@
                 this.showIntro = true;
             } else {
                 this.showIntro = false;
-                this.connectWebSocket();
+                const hash = window.location.hash.replace("#", "");
+                console.log("Connecting to session/" + hash);
+                const session = fetch("/session/" + hash, {
+                    method: "GET",
+                })
+                    .then(response => response.json())
+                    .then(async data => {
+                        this.connectWebSocket();
+                    });
             }
             window.addEventListener("resize", () => {
                 if (!this.collapsed) {

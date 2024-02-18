@@ -253,7 +253,7 @@ app.delete("/items/:id", (req, res) => {
 });
 
 // Submit to OpenAI API and stream results back
-async function sendAndStream(ws, message) {
+async function sendAndStream(ws, hash, message) {
     const currentPrompt = prompt.replace("{{date}}", new Date().toLocaleString());
     const request = {
         model: "gpt-4",
@@ -269,7 +269,6 @@ async function sendAndStream(ws, message) {
             // If the first token is a number, we assume it's a list of items
             if (type === null) {
                 const firstToken = data;
-                console.log(isNaN(firstToken), firstToken);
                 if (!isNaN(firstToken)) {
                     type = "items";
                 } else if (firstToken.toLowerCase() === "targets") {
@@ -283,13 +282,14 @@ async function sendAndStream(ws, message) {
                 results += data;
                 const newlineCount = (results.match(/\n/g) || []).length;
                 try {
-                    const obj = JSON.parse(results);
-                    type = "done";
+                    const arr = JSON.parse(results);
+                    arr.push(hash);
                     if (type === "items") {
-                        recordItems(ws, obj);
+                        recordItems(ws, arr);
                     } else if (type === "targets") {
-                        recordTargets(ws, obj);
+                        recordTargets(ws, arr);
                     }
+                    type = "done";
                 } catch (e) {
                     // If we can't parse the JSON, it's not complete yet
                 }
@@ -343,7 +343,6 @@ async function recordItems(ws, arr) {
         if (err) {
             console.error(err.message);
         } else {
-            console.log(`Recorded ${arr.join(", ")}`);
             ws.send(JSON.stringify({type: "reload"}));
         }
     });
@@ -400,7 +399,7 @@ wss.on("connection", async function (ws, request) {
         } else if (message === "welcomePrompt") {
             sendWelcomePrompt(ws);
         } else {
-            sendAndStream(ws, message.toString());
+            sendAndStream(ws, hash, message.toString());
         }
         console.log("received: %s", message);
     });

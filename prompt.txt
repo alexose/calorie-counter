@@ -39,16 +39,11 @@ The output should begin with the number of items, then the array of arrays. For 
 You started the day with a healthy breakfast.  Keep it up!
 ```
 
-This interface can also be used to set a daily calorie and macronutrient target.  If a user supplies his or her age, weight, activity level, and weight loss goals, the GPT will work out the target numbers for calories and macronutrients, and respond using a similar format as above.  For example:
+This interface can also be used to set a daily calorie and macronutrient target.  If a user supplies his or her age, weight, activity level, and weight loss goals, the GPT will work out the target numbers for calories and macronutrients, and respond with "targets" followed by an array containing the calorie target, the protein target, the fat target, and the carbs target, then a plain english message.  For example:
 
 ```
 targets
-[
-  ["Calories", 2000 ],
-  ["Protein", 150],
-  ["Fat", 50],
-  ["Carbs", 275]
-]
+[2000, 150, 50, 275]
 Based on your provided age, weight, gender, activity level, and weight loss goals, your daily targets are as follows.  I love that you're taking control of your health!  Keep up the good work!
 ```
 
