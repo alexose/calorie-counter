@@ -5,36 +5,26 @@
             webSocket: Object,
             webSocketStatus: String,
             messages: Array,
-            messageIdx: Number,
+            loading: Boolean,
+            sendMessage: Function,
         },
         data() {
             return {
                 input: "",
                 error: "",
                 connected: false,
-                loading: false,
             };
         },
         methods: {
-            sendMessage() {
-                this.webSocket.send(JSON.stringify({message: this.input}));
-                const arr = this.messages;
-                const idx = this.messageIdx;
-                this.error = null;
-                arr[idx] = {
-                    id: idx,
-                    header: "Me:",
-                    body: this.input,
-                    datetime: new Date().toLocaleString(),
-                };
-                this.messageIdx++;
-
-                this.scroll();
-                (this.loading = true), (this.input = "");
-            },
             scroll() {
                 const container = document.getElementById("scrollContainer");
                 container.scrollTop = container.scrollHeight;
+            },
+            send() {
+                if (this.input) {
+                    this.sendMessage(this.input);
+                    this.input = "";
+                }
             },
         },
         watch: {
@@ -70,7 +60,7 @@
             <p v-if="error" style="color: red">{{ error }}</p>
         </div>
         <div class="chat-input">
-            <input type="text" @keydown.enter="sendMessage" v-model="input" />
+            <input type="text" @keydown.enter="send" v-model="input" />
             <button @click="sendMessage">Send</button>
             <div class="spinner" v-if="loading"></div>
         </div>

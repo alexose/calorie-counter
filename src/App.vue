@@ -18,6 +18,7 @@
                 firstLoad: true,
                 messages: [],
                 messageIdx: 0,
+                loading: false,
             };
         },
         components: {
@@ -92,10 +93,25 @@
 
                 ws.onmessage = this.messageHandler;
             },
+            sendMessage(message) {
+                this.webSocket.send(JSON.stringify({message}));
+                const arr = this.messages;
+                const idx = this.messageIdx;
+                this.error = null;
+                arr[idx] = {
+                    id: idx,
+                    header: "Me:",
+                    body: message,
+                    datetime: new Date().toLocaleString(),
+                };
+                this.messageIdx++;
+                this.$refs.chatInterface.scroll();
+                this.loading = true;
+            },
             messageHandler(event) {
                 const obj = JSON.parse(event.data);
                 if (obj.type === "reload") {
-                    this.$emit("data-finished");
+                    this.handleDataFinished();
                     return;
                 }
                 if (obj.type === "error") {
@@ -187,11 +203,12 @@
         <div class="divider" @mousedown="startResize" v-if="!collapsed"></div>
         <div class="right-pane chat-interface" :class="{collapsed: collapsed}">
             <ChatInterface
-                @data-finished="handleDataFinished"
                 :webSocket="webSocket"
                 :webSocketStatus="webSocketStatus"
                 :messages="messages"
                 :messageIdx="messageIdx"
+                :sendMessage="sendMessage"
+                :loading="loading"
                 ref="chatInterface"
             />
         </div>

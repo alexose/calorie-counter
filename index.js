@@ -283,9 +283,11 @@ async function sendAndStream(ws, hash, message) {
                 const newlineCount = (results.match(/\n/g) || []).length;
                 try {
                     const arr = JSON.parse(results);
-                    arr.push(hash);
                     if (type === "items") {
-                        recordItems(ws, arr);
+                        arr.forEach(d => {
+                            const item = d.concat(hash);
+                            recordItems(ws, item);
+                        });
                     } else if (type === "targets") {
                         recordTargets(ws, arr);
                     }
@@ -336,8 +338,9 @@ async function sendWelcomePrompt(ws) {
 
 // Record the items in the database
 async function recordItems(ws, arr) {
+    console.log(arr);
     const sql =
-        "INSERT INTO items (name, calories_low, calories, calories_high, protein_low, protein, protein_high, fat_low, fat, fat_high, carbs_low, carbs, carbs_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        "INSERT INTO items (name, calories_low, calories, calories_high, protein_low, protein, protein_high, fat_low, fat, fat_high, carbs_low, carbs, carbs_high, consumed_at, session_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     db.run(sql, arr, function (err) {
         if (err) {
