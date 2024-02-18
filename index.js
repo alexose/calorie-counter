@@ -61,6 +61,34 @@ app.post("/session", (req, res) => {
     });
 });
 
+// Set calorie targets
+app.post("/session/:id", (req, res) => {
+    const {id} = req.params;
+    const {calories, protein, fat, carbs} = req.body;
+
+    const sql =
+        "UPDATE sessions SET calorie_target = ?, protein_target = ?, fat_target = ?, carbs_target = ? WHERE token = ?";
+    db.run(sql, [calorie_target, protein_target, fat_target, carbs_target, id], function (err) {
+        if (err) {
+            res.status(500).json({error: err.message});
+            return;
+        }
+        res.status(200).json({message: `Row(s) updated: ${this.changes}`});
+    });
+});
+
+// Get session
+app.get("/session/:id", (req, res) => {
+    const {id} = req.params;
+    db.get("SELECT * FROM sessions WHERE token = ?", id, (err, row) => {
+        if (err) {
+            res.status(500).json({error: err.message});
+            return;
+        }
+        res.status(200).json({data: row});
+    });
+});
+
 // CREATE
 app.post("/items", (req, res) => {
     const itemsArray = req.body.items;
