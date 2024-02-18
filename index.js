@@ -16,8 +16,7 @@ const OPENAI_KEY = secrets.OPENAI_KEY;
 
 const openai = require("openai");
 const openAiInstance = new openai({apiKey: OPENAI_KEY});
-const dataPrompt = fs.readFileSync("./dataPrompt.txt", "utf8");
-const englishPrompt = fs.readFileSync("./englishPrompt.txt", "utf8");
+const prompt = fs.readFileSync("./prompt.txt", "utf8");
 
 const authenticate = (req, res, next) => {
     const apiKey = req.headers["x-api-key"];
@@ -255,48 +254,49 @@ app.delete("/items/:id", (req, res) => {
 
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
-    // We're going to make two requests:  One for raw data, and one for plain english.
-    // Begin by gathering the JSON response.
-    const currentDataPrompt = dataPrompt.replace("{{date}}", new Date().toISOString());
-    console.log(new Date().toISOString());
-    const dataRequest = {
+    const currentPrompt = prompt.replace("{{date}}", new Date().toLocaleString());
+    const request = {
         model: "gpt-4",
-        messages: [{role: "user", content: currentDataPrompt + "\n" + message}],
-        stream: true
-    };
-
-    // Fire off first request
-    await openAiInstance.chat.completions.create(dataRequest).then(async response => {
-        const json = response?.choices?.[0].message?.content;
-        if (json) {
-            let arr;
-            try {
-                arr = JSON.parse(json);
-            } catch (e) {
-                console.error(e);
-                ws.send(JSON.stringify({type: "error", data: json}));
-                return;
-            }
-
-            arr.forEach(d => {
-                recordData(ws, d);
-            });
-            ws.send(JSON.stringify({type: "data", arr}));
-        }
-    });
-
-    // Now, let's send the plain english request.
-    const currentEnglishPrompt = englishPrompt.replace("{{date}}", new Date().toLocaleString());
-    const englishRequest = {
-        model: "gpt-4",
-        messages: [{role: "user", content: currentEnglishPrompt + "\n" + message}],
+        messages: [{role: "user", content: currentPrompt + "\n" + message}],
         stream: true,
     };
 
-    const englishStream = openAiInstance.beta.chat.completions.stream(englishRequest);
-    englishStream
+    const stream = openAiInstance.beta.chat.completions.stream(request);
+    let type = null;
+    let results = "";
+    stream
         .on("content", data => {
-            // Stream remaining message to client
+            // If the first token is a number, we assume it's a list of items
+            if (type === null) {
+                const firstToken = data;
+                console.log(isNaN(firstToken), firstToken);
+                if (!isNaN(firstToken)) {
+                    type = "items";
+                } else if (firstToken.toLowerCase() === "targets") {
+                    type = "targets";
+                }
+                return;
+            }
+
+            // Begin recording the data
+            if (type == "items" || type == "targets") {
+                results += data;
+                const newlineCount = (results.match(/\n/g) || []).length;
+                try {
+                    const obj = JSON.parse(results);
+                    type = "done";
+                    if (type === "items") {
+                        recordItems(ws, obj);
+                    } else if (type === "targets") {
+                        recordTargets(ws, obj);
+                    }
+                } catch (e) {
+                    // If we can't parse the JSON, it's not complete yet
+                }
+                return;
+            }
+
+            // If we're done with data, stream each individual item back to the client
             ws.send(JSON.stringify({type: "message", data}));
         })
         .on("end", () => {
@@ -334,10 +334,25 @@ async function sendWelcomePrompt(ws) {
         });
 }
 
-// Record the data in the database
-async function recordData(ws, arr) {
+// Record the items in the database
+async function recordItems(ws, arr) {
     const sql =
         "INSERT INTO items (name, calories_low, calories, calories_high, protein_low, protein, protein_high, fat_low, fat, fat_high, carbs_low, carbs, carbs_high, consumed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+    db.run(sql, arr, function (err) {
+        if (err) {
+            console.error(err.message);
+        } else {
+            console.log(`Recorded ${arr.join(", ")}`);
+            ws.send(JSON.stringify({type: "reload"}));
+        }
+    });
+}
+
+// Record targets in the database
+async function recordTargets(ws, arr) {
+    const sql =
+        "UPDATE sessions SET calorie_target = ?, protein_target = ?, fat_target = ?, carbs_target = ? WHERE token = ?";
 
     db.run(sql, arr, function (err) {
         if (err) {
