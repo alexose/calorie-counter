@@ -1,9 +1,16 @@
 <script>
     export default {
+        props: {
+            targets: {
+                type: Object,
+                default: () => ({}),
+            },
+        },
         data() {
             return {
                 items: [],
                 selected: [],
+                showTargets: false,
                 isDragging: false,
                 lastClickedItem: null,
             };
@@ -33,6 +40,9 @@
                     this.items = this.items.filter(i => i.id !== item.id);
                     this.selected = this.selected.filter(i => i.id !== item.id);
                 });
+            },
+            toggleTargets() {
+                this.showTargets = !this.showTargets;
             },
             toggleItem(item) {
                 // If item is selected, remove it from the array.  Otherwise, add it to the array
@@ -180,7 +190,40 @@
             <button type="button" class="btn btn-primary" @click="selectThisWeek">Select This Week</button>
             <div class="divider"></div>
             <button type="button" class="btn btn-primary" @click="selected = []">Clear Selection</button>
+            <div class="divider"></div>
+            <button type="button" class="btn btn-primary" @click="toggleTargets">
+                {{ showTargets ? "Hide" : "Show" }} targets
+            </button>
         </div>
+
+        <table class="table table-striped" v-if="showTargets">
+            <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col">Calorie Target</th>
+                    <th scope="col">Carb Target</th>
+                    <th scope="col">Fat Target</th>
+                    <th scope="col">Protein Target</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Per day</td>
+                    <td>{{ rounded(targets?.calories || 0) }}</td>
+                    <td>{{ rounded(targets?.carbs || 0) }}</td>
+                    <td>{{ rounded(targets?.fat || 0) }}</td>
+                    <td>{{ rounded(targets?.protein || 0) }}</td>
+                </tr>
+                <tr>
+                    <td>Per week</td>
+                    <td>{{ rounded(targets?.calories || 0) }}</td>
+                    <td>{{ rounded(targets?.carbs || 0) }}</td>
+                    <td>{{ rounded(targets?.fat || 0) }}</td>
+                    <td>{{ rounded(targets?.protein || 0) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
         <table class="table table-striped" :class="{dragging: isDragging}">
             <thead>
                 <tr>
