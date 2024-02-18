@@ -256,12 +256,13 @@ app.delete("/items/:id", (req, res) => {
 // Submit to OpenAI API and stream results back
 async function sendAndStream(ws, message) {
     // We're going to make two requests:  One for raw data, and one for plain english.
-    // Begin by gathering the JSON response. This one doesn't need to stream.
+    // Begin by gathering the JSON response.
     const currentDataPrompt = dataPrompt.replace("{{date}}", new Date().toISOString());
     console.log(new Date().toISOString());
     const dataRequest = {
         model: "gpt-4",
         messages: [{role: "user", content: currentDataPrompt + "\n" + message}],
+        stream: true
     };
 
     // Fire off first request
@@ -284,7 +285,7 @@ async function sendAndStream(ws, message) {
         }
     });
 
-    // Now, let's send the plain english request. This one will stream.
+    // Now, let's send the plain english request.
     const currentEnglishPrompt = englishPrompt.replace("{{date}}", new Date().toLocaleString());
     const englishRequest = {
         model: "gpt-4",
@@ -292,9 +293,8 @@ async function sendAndStream(ws, message) {
         stream: true,
     };
 
-    // Fire off first request
-    const stream = openAiInstance.beta.chat.completions.stream(englishRequest);
-    stream
+    const englishStream = openAiInstance.beta.chat.completions.stream(englishRequest);
+    englishStream
         .on("content", data => {
             // Stream remaining message to client
             ws.send(JSON.stringify({type: "message", data}));
